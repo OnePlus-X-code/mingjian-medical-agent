@@ -1,0 +1,24 @@
+[
+  {
+    "action_id": "MA-2024-001",
+    "case_id": "SC-2024-001",
+    "operator": "系统管理员",
+    "action_type": "追回资金",
+    "action_detail": "追回MRI检查费用3500元",
+    "action_date": "2024-04-01",
+    "target_hospital": "市第一人民医院",
+    "amount": 3500.00,
+    "status": "已执行"
+  },
+  {
+    "action_id": "MA-2024-002",
+    "case_id": "SC-2024-002",
+    "operator": "系统管理员",
+    "action_type": "系统修正",
+    "action_detail": "通知医院修正HIS系统收费模块，避免重复计费",
+    "action_date": "2024-04-02",
+    "target_hospital": "省中医院",
+    "amount": 0,
+    "status": "已执行"
+  }
+]

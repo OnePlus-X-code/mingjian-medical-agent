@@ -1,0 +1,26 @@
+[
+  {
+    "case_id": "SC-2024-001",
+    "patient_name": "张三",
+    "hospital": "市第一人民医院",
+    "department": "骨科",
+    "suspect_type": "过度检查",
+    "description": "患者因轻微扭伤被要求进行CT、MRI等多项检查，检查费用远超正常水平",
+    "total_cost": 8500.00,
+    "suspect_cost": 6200.00,
+    "report_date": "2024-03-15",
+    "status": "待审核"
+  },
+  {
+    "case_id": "SC-2024-002",
+    "patient_name": "李四",
+    "hospital": "省中医院",
+    "department": "内科",
+    "suspect_type": "重复收费",
+    "description": "同一诊疗项目在同一天被多次收费，涉嫌重复计费",
+    "total_cost": 3200.00,
+    "suspect_cost": 1600.00,
+    "report_date": "2024-03-18",
+    "status": "待审核"
+  }
+]

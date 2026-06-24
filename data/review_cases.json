@@ -1,0 +1,24 @@
+[
+  {
+    "review_id": "RV-2024-001",
+    "case_id": "SC-2024-001",
+    "appeal_id": "AP-2024-001",
+    "reviewer": "王专家",
+    "review_date": "2024-03-25",
+    "decision": "部分维持",
+    "decision_detail": "CT检查属必要范围，MRI检查缺乏充分指征，MRI费用予以追回",
+    "penalty_amount": 3500.00,
+    "status": "已结案"
+  },
+  {
+    "review_id": "RV-2024-002",
+    "case_id": "SC-2024-002",
+    "appeal_id": "AP-2024-002",
+    "reviewer": "赵专家",
+    "review_date": "2024-03-28",
+    "decision": "撤销原判",
+    "decision_detail": "经核实HIS系统日志，确认系系统故障导致重复录入，非主观违规",
+    "penalty_amount": 0,
+    "status": "已结案"
+  }
+]

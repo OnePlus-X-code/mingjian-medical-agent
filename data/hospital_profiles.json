@@ -1,0 +1,26 @@
+[
+  {
+    "hospital_id": "H-001",
+    "name": "市第一人民医院",
+    "level": "三甲",
+    "address": "XX市XX区XX路100号",
+    "departments": 32,
+    "bed_count": 1200,
+    "annual_revenue": 1500000000,
+    "violation_count": 5,
+    "last_violation_date": "2024-01-10",
+    "risk_level": "中"
+  },
+  {
+    "hospital_id": "H-002",
+    "name": "省中医院",
+    "level": "三甲",
+    "address": "XX市XX区XX路200号",
+    "departments": 28,
+    "bed_count": 800,
+    "annual_revenue": 900000000,
+    "violation_count": 2,
+    "last_violation_date": "2023-11-05",
+    "risk_level": "低"
+  }
+]
