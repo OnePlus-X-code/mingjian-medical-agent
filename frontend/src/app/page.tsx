@@ -8,12 +8,20 @@ import {
   type FilterState,
 } from "@/components/dashboard/filter-bar";
 import { CaseTable } from "@/components/dashboard/case-table";
+import { CaseDetailDrawer } from "@/components/dashboard/case-detail-drawer";
+import { FeedbackPanel } from "@/components/dashboard/feedback-panel";
 import { getFilterOptions, getStats } from "@/lib/api";
 import reviewCasesData from "@/mock/review_cases.json";
-import type { HumanAction, ReviewCase } from "@/types/review";
+import manualActionsData from "@/mock/manual_actions.json";
+import type {
+  HumanAction,
+  ManualAction,
+  ReviewCase,
+} from "@/types/review";
 
 const OPERATOR = "医保审核员 01";
 const ALL_CASES = reviewCasesData as ReviewCase[];
+const ALL_FEEDBACKS = manualActionsData as ManualAction[];
 
 export default function DashboardPage() {
   const [filter, setFilter] = useState<FilterState>({
@@ -22,6 +30,8 @@ export default function DashboardPage() {
     status: "all",
     keyword: "",
   });
+  const [selectedCase, setSelectedCase] = useState<ReviewCase | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filterOptions = useMemo(() => getFilterOptions(), []);
   const stats = useMemo(() => getStats(), []);
@@ -55,11 +65,29 @@ export default function DashboardPage() {
     });
   }, [filter]);
 
+  const recentFeedbacks = useMemo(
+    () =>
+      [...ALL_FEEDBACKS]
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .slice(0, 5),
+    []
+  );
+
+  const caseFeedbacks = useMemo(
+    () =>
+      selectedCase
+        ? ALL_FEEDBACKS.filter((f) => f.case_id === selectedCase.case_id)
+        : [],
+    [selectedCase]
+  );
+
   const handleRowClick = (c: ReviewCase) => {
-    console.log("[row click]", c.case_id);
+    setSelectedCase(c);
+    setDrawerOpen(true);
   };
 
   const handleAction = (c: ReviewCase, action: HumanAction) => {
+    // Step 4 接入完整人工操作闭环
     console.log("[action]", c.case_id, action);
   };
 
@@ -86,7 +114,15 @@ export default function DashboardPage() {
           onRowClick={handleRowClick}
           onAction={handleAction}
         />
+        <FeedbackPanel feedbacks={recentFeedbacks} />
       </main>
+      <CaseDetailDrawer
+        caseItem={selectedCase}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onAction={handleAction}
+        caseFeedbacks={caseFeedbacks}
+      />
     </>
   );
 }
