@@ -58,10 +58,19 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
             cases.map((c) => (
               <TableRow
                 key={c.case_id}
-                className="cursor-pointer transition hover:bg-sky-50/40"
+                className="group cursor-pointer transition hover:bg-sky-50/40"
                 onClick={() => onRowClick?.(c)}
               >
-                <TableCell className="pl-4">
+                <TableCell className="relative pl-4">
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r-full opacity-70 transition group-hover:opacity-100",
+                      c.light_status === "green" && "bg-emerald-500",
+                      c.light_status === "yellow" && "bg-amber-500",
+                      c.light_status === "red" && "bg-rose-500"
+                    )}
+                  />
                   <LightDot status={c.light_status} />
                 </TableCell>
                 <TableCell className="font-mono text-xs font-medium text-slate-700">
