@@ -99,35 +99,39 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
                   className="text-right"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex justify-end gap-1.5">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-2 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                      onClick={() => onAction?.(c, "approve")}
-                    >
-                      <CheckCircle2 className="size-3.5" />
-                      放行
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-2 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                      onClick={() => onAction?.(c, "reject")}
-                    >
-                      <XCircle className="size-3.5" />
-                      打回
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-2 text-sky-700 hover:bg-sky-50 hover:text-sky-800"
-                      onClick={() => onAction?.(c, "manual_review")}
-                    >
-                      <RotateCcw className="size-3.5" />
-                      转人工
-                    </Button>
-                  </div>
+                  {c.current_status === "pending" ? (
+                    <div className="flex justify-end gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                        onClick={() => onAction?.(c, "approve")}
+                      >
+                        <CheckCircle2 className="size-3.5" />
+                        放行
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                        onClick={() => onAction?.(c, "reject")}
+                      >
+                        <XCircle className="size-3.5" />
+                        打回
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+                        onClick={() => onAction?.(c, "manual_review")}
+                      >
+                        <RotateCcw className="size-3.5" />
+                        转人工
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">已处置</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))

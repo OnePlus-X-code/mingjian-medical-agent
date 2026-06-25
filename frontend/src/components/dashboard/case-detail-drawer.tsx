@@ -366,39 +366,46 @@ function DrawerFooter({
   caseItem: ReviewCase;
   onAction?: (c: ReviewCase, action: HumanAction) => void;
 }) {
+  const processed = caseItem.current_status !== "pending";
   return (
     <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-white px-6 py-3 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.08)]">
       <div className="text-xs text-slate-500">
-        审核员的最终判断会写入反馈记录，用于优化 Agent 判断逻辑
+        {processed
+          ? "该案例已处置，操作记录已写入反馈库"
+          : "审核员的最终判断会写入反馈记录，用于优化 Agent 判断逻辑"}
       </div>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-          onClick={() => onAction?.(caseItem, "reject")}
-        >
-          <XCircle className="size-4" />
-          打回
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-sky-200 text-sky-700 hover:bg-sky-50 hover:text-sky-800"
-          onClick={() => onAction?.(caseItem, "manual_review")}
-        >
-          <RotateCcw className="size-4" />
-          转人工
-        </Button>
-        <Button
-          size="sm"
-          className="bg-emerald-600 text-white hover:bg-emerald-700"
-          onClick={() => onAction?.(caseItem, "approve")}
-        >
-          <CheckCircle2 className="size-4" />
-          放行
-        </Button>
-      </div>
+      {processed ? (
+        <StatusBadge status={caseItem.current_status} />
+      ) : (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+            onClick={() => onAction?.(caseItem, "reject")}
+          >
+            <XCircle className="size-4" />
+            打回
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-sky-200 text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+            onClick={() => onAction?.(caseItem, "manual_review")}
+          >
+            <RotateCcw className="size-4" />
+            转人工
+          </Button>
+          <Button
+            size="sm"
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
+            onClick={() => onAction?.(caseItem, "approve")}
+          >
+            <CheckCircle2 className="size-4" />
+            放行
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

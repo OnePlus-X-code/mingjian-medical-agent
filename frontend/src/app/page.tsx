@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { StatsRow } from "@/components/dashboard/stats-row";
 import {
@@ -10,35 +11,74 @@ import {
 import { CaseTable } from "@/components/dashboard/case-table";
 import { CaseDetailDrawer } from "@/components/dashboard/case-detail-drawer";
 import { FeedbackPanel } from "@/components/dashboard/feedback-panel";
-import { getFilterOptions, getStats } from "@/lib/api";
+import { RejectReasonDialog } from "@/components/dashboard/reject-reason-dialog";
+import { getFilterOptions } from "@/lib/api";
 import reviewCasesData from "@/mock/review_cases.json";
 import manualActionsData from "@/mock/manual_actions.json";
 import type {
+  CurrentStatus,
   HumanAction,
   ManualAction,
   ReviewCase,
 } from "@/types/review";
 
 const OPERATOR = "医保审核员 01";
-const ALL_CASES = reviewCasesData as ReviewCase[];
-const ALL_FEEDBACKS = manualActionsData as ManualAction[];
+const INITIAL_CASES = reviewCasesData as ReviewCase[];
+const INITIAL_FEEDBACKS = manualActionsData as ManualAction[];
+
+const STATUS_BY_ACTION: Record<HumanAction, CurrentStatus> = {
+  approve: "approved",
+  reject: "rejected",
+  manual_review: "manual_review",
+};
+
+const ACTION_LABEL: Record<HumanAction, string> = {
+  approve: "放行",
+  reject: "打回",
+  manual_review: "转人工审核",
+};
+
+function nowString() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+    now.getDate()
+  )} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
 
 export default function DashboardPage() {
+  const [cases, setCases] = useState<ReviewCase[]>(INITIAL_CASES);
+  const [feedbacks, setFeedbacks] =
+    useState<ManualAction[]>(INITIAL_FEEDBACKS);
   const [filter, setFilter] = useState<FilterState>({
     hospital: "all",
     department: "all",
     status: "all",
     keyword: "",
   });
-  const [selectedCase, setSelectedCase] = useState<ReviewCase | null>(null);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingReject, setPendingReject] = useState<ReviewCase | null>(null);
 
   const filterOptions = useMemo(() => getFilterOptions(), []);
-  const stats = useMemo(() => getStats(), []);
+
+  const stats = useMemo(() => {
+    const pending = cases.filter((c) => c.current_status === "pending").length;
+    const green = cases.filter(
+      (c) => c.current_status === "pending" && c.light_status === "green"
+    ).length;
+    const yellow = cases.filter(
+      (c) => c.current_status === "pending" && c.light_status === "yellow"
+    ).length;
+    const red = cases.filter(
+      (c) => c.current_status === "pending" && c.light_status === "red"
+    ).length;
+    return { pending, green, yellow, red };
+  }, [cases]);
 
   const filteredCases = useMemo(() => {
     const k = filter.keyword.trim().toLowerCase();
-    return ALL_CASES.filter((c) => {
+    return cases.filter((c) => {
       if (filter.hospital !== "all" && c.hospital_name !== filter.hospital)
         return false;
       if (
@@ -63,33 +103,94 @@ export default function DashboardPage() {
       }
       return true;
     });
-  }, [filter]);
+  }, [cases, filter]);
 
-  const recentFeedbacks = useMemo(
-    () =>
-      [...ALL_FEEDBACKS]
-        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
-        .slice(0, 5),
-    []
+  const selectedCase = useMemo(
+    () => cases.find((c) => c.case_id === selectedCaseId) ?? null,
+    [cases, selectedCaseId]
   );
 
   const caseFeedbacks = useMemo(
     () =>
       selectedCase
-        ? ALL_FEEDBACKS.filter((f) => f.case_id === selectedCase.case_id)
+        ? feedbacks.filter((f) => f.case_id === selectedCase.case_id)
         : [],
-    [selectedCase]
+    [feedbacks, selectedCase]
   );
 
   const handleRowClick = (c: ReviewCase) => {
-    setSelectedCase(c);
+    setSelectedCaseId(c.case_id);
     setDrawerOpen(true);
   };
 
-  const handleAction = (c: ReviewCase, action: HumanAction) => {
-    // Step 4 接入完整人工操作闭环
-    console.log("[action]", c.case_id, action);
+  const applyAction = (
+    c: ReviewCase,
+    action: HumanAction,
+    reason?: string
+  ) => {
+    const newStatus = STATUS_BY_ACTION[action];
+    setCases((prev) =>
+      prev.map((x) =>
+        x.case_id === c.case_id ? { ...x, current_status: newStatus } : x
+      )
+    );
+    const newAction: ManualAction = {
+      action_id: `MA${String(feedbacks.length + 1).padStart(3, "0")}`,
+      case_id: c.case_id,
+      hospital_name: c.hospital_name,
+      department: c.department,
+      agent_status: c.light_status,
+      human_action: action,
+      human_reason: reason,
+      operator: OPERATOR,
+      created_at: nowString(),
+      is_agent_accepted: c.suggested_action === action,
+    };
+    setFeedbacks((prev) => [newAction, ...prev]);
+
+    const verb = ACTION_LABEL[action];
+    if (c.light_status === "green" && action === "reject") {
+      toast.warning(`已打回绿灯案例 ${c.case_id}`, {
+        description: `已记录人工理由，将用于优化 Agent 判断逻辑`,
+      });
+    } else if (action === "approve") {
+      toast.success(`已${verb} ${c.case_id}`, {
+        description: `${c.hospital_name} · ${c.department}`,
+      });
+    } else if (action === "reject") {
+      toast.error(`已${verb} ${c.case_id}`, {
+        description: `${c.hospital_name} · ${c.department}`,
+      });
+    } else {
+      toast.info(`已${verb} ${c.case_id}`, {
+        description: `${c.hospital_name} · ${c.department}`,
+      });
+    }
   };
+
+  const handleAction = (c: ReviewCase, action: HumanAction) => {
+    if (c.current_status !== "pending") return;
+    // 绿灯被打回必须填写理由
+    if (c.light_status === "green" && action === "reject") {
+      setPendingReject(c);
+      return;
+    }
+    applyAction(c, action);
+  };
+
+  const handleConfirmReject = (reason: string) => {
+    if (!pendingReject) return;
+    applyAction(pendingReject, "reject", reason);
+    setPendingReject(null);
+  };
+
+  const recentFeedbacks = useMemo(
+    () =>
+      [...feedbacks]
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .slice(0, 5),
+    [feedbacks]
+  );
 
   return (
     <>
@@ -106,7 +207,7 @@ export default function DashboardPage() {
           onChange={setFilter}
           hospitals={filterOptions.hospitals}
           departments={filterOptions.departments}
-          totalCount={ALL_CASES.length}
+          totalCount={cases.length}
           filteredCount={filteredCases.length}
         />
         <CaseTable
@@ -122,6 +223,14 @@ export default function DashboardPage() {
         onOpenChange={setDrawerOpen}
         onAction={handleAction}
         caseFeedbacks={caseFeedbacks}
+      />
+      <RejectReasonDialog
+        caseItem={pendingReject}
+        open={pendingReject !== null}
+        onOpenChange={(o) => {
+          if (!o) setPendingReject(null);
+        }}
+        onConfirm={handleConfirmReject}
       />
     </>
   );
