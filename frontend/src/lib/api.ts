@@ -7,6 +7,10 @@ import type {
   ReviewCase,
 } from "@/types/review";
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const API_TIMEOUT_MS = 1200;
+
 const REVIEW_CASES = reviewCasesData as ReviewCase[];
 const MANUAL_ACTIONS = manualActionsData as ManualAction[];
 
@@ -17,9 +21,71 @@ export interface ReviewCaseQuery {
   keyword?: string;
 }
 
-export async function getReviewCases(
-  query: ReviewCaseQuery = {}
-): Promise<ReviewCase[]> {
+export interface SubmitActionInput {
+  case_id: string;
+  agent_status: LightStatus;
+  human_action: HumanAction;
+  human_reason?: string;
+  operator: string;
+}
+
+type ApiData = Record<string, unknown> | unknown[] | null;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function buildQuery(query: ReviewCaseQuery) {
+  const params = new URLSearchParams();
+  if (query.status && query.status !== "all") params.set("status", query.status);
+  if (query.hospital && query.hospital !== "all")
+    params.set("hospital", query.hospital);
+  if (query.department && query.department !== "all")
+    params.set("department", query.department);
+  if (query.keyword?.trim()) params.set("keyword", query.keyword.trim());
+  const value = params.toString();
+  return value ? `?${value}` : "";
+}
+
+async function requestJson(path: string, init?: RequestInit): Promise<ApiData> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    signal: controller.signal,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  }).finally(() => window.clearTimeout(timeout));
+
+  if (!response.ok) {
+    throw new Error(`API ${path} returned ${response.status}`);
+  }
+
+  return (await response.json()) as ApiData;
+}
+
+function unwrapList<T>(payload: ApiData): T[] | null {
+  if (Array.isArray(payload)) return payload as T[];
+  if (!isRecord(payload)) return null;
+
+  const data = payload.data;
+  if (Array.isArray(data)) return data as T[];
+  if (isRecord(data) && Array.isArray(data.items)) return data.items as T[];
+  if (Array.isArray(payload.items)) return payload.items as T[];
+
+  return null;
+}
+
+function unwrapObject(payload: ApiData): Record<string, unknown> | null {
+  if (!isRecord(payload)) return null;
+  if (isRecord(payload.data)) return payload.data;
+  return payload;
+}
+
+function filterLocalCases(query: ReviewCaseQuery = {}) {
   const { status, hospital, department, keyword } = query;
   return REVIEW_CASES.filter((c) => {
     if (status && status !== "all" && c.light_status !== status) return false;
@@ -46,26 +112,43 @@ export async function getReviewCases(
   });
 }
 
+export async function getReviewCases(
+  query: ReviewCaseQuery = {}
+): Promise<ReviewCase[]> {
+  try {
+    const payload = await requestJson(`/review-cases${buildQuery(query)}`);
+    return unwrapList<ReviewCase>(payload) ?? filterLocalCases(query);
+  } catch {
+    return filterLocalCases(query);
+  }
+}
+
 export async function getReviewCaseById(
   caseId: string
 ): Promise<ReviewCase | null> {
+  try {
+    const payload = await requestJson(`/review-cases/${caseId}`);
+    const data = unwrapObject(payload);
+    if (data) return data as unknown as ReviewCase;
+  } catch {
+    // Fall back to local demo data when the backend is not running.
+  }
+
   return REVIEW_CASES.find((c) => c.case_id === caseId) ?? null;
 }
 
-export async function getRecentFeedbacks(
-  limit = 5
-): Promise<ManualAction[]> {
+export async function getRecentFeedbacks(limit = 5): Promise<ManualAction[]> {
+  try {
+    const payload = await requestJson(`/feedbacks?limit=${limit}`);
+    const feedbacks = unwrapList<ManualAction>(payload);
+    if (feedbacks) return feedbacks.slice(0, limit);
+  } catch {
+    // Fall back to local demo data when the backend is not running.
+  }
+
   return [...MANUAL_ACTIONS]
     .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
     .slice(0, limit);
-}
-
-export interface SubmitActionInput {
-  case_id: string;
-  agent_status: LightStatus;
-  human_action: HumanAction;
-  human_reason?: string;
-  operator: string;
 }
 
 export async function submitAction(
@@ -76,15 +159,34 @@ export async function submitAction(
   if (isGreenReject && !input.human_reason?.trim()) {
     throw new Error("绿灯被打回时必须填写理由");
   }
+
+  const target = REVIEW_CASES.find((c) => c.case_id === input.case_id);
+  const fallback = createLocalAction(input, target);
+
+  try {
+    const payload = await requestJson("/actions", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    const saved = unwrapObject(payload);
+    return saved ? ({ ...fallback, ...saved } as ManualAction) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function createLocalAction(
+  input: SubmitActionInput,
+  target?: ReviewCase
+): ManualAction {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
   const created_at = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
     now.getDate()
   )} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  const action_id = `MA${String(MANUAL_ACTIONS.length + 1).padStart(3, "0")}`;
-  const target = await getReviewCaseById(input.case_id);
+
   return {
-    action_id,
+    action_id: `MA-${input.case_id}-${now.getTime()}`,
     case_id: input.case_id,
     hospital_name: target?.hospital_name,
     department: target?.department,
@@ -103,25 +205,17 @@ function lightFromAction(action: HumanAction): LightStatus {
   return "yellow";
 }
 
-export function getFilterOptions() {
-  const hospitals = Array.from(
-    new Set(REVIEW_CASES.map((c) => c.hospital_name))
-  );
-  const departments = Array.from(
-    new Set(REVIEW_CASES.map((c) => c.department))
-  );
+export function getFilterOptions(cases: ReviewCase[] = REVIEW_CASES) {
+  const hospitals = Array.from(new Set(cases.map((c) => c.hospital_name)));
+  const departments = Array.from(new Set(cases.map((c) => c.department)));
   return { hospitals, departments };
 }
 
-export function getStats() {
-  const total = REVIEW_CASES.length;
-  const pending = REVIEW_CASES.filter(
-    (c) => c.current_status === "pending"
-  ).length;
-  const green = REVIEW_CASES.filter((c) => c.light_status === "green").length;
-  const red = REVIEW_CASES.filter((c) => c.light_status === "red").length;
-  const yellow = REVIEW_CASES.filter(
-    (c) => c.light_status === "yellow"
-  ).length;
+export function getStats(cases: ReviewCase[] = REVIEW_CASES) {
+  const total = cases.length;
+  const pending = cases.filter((c) => c.current_status === "pending").length;
+  const green = cases.filter((c) => c.light_status === "green").length;
+  const red = cases.filter((c) => c.light_status === "red").length;
+  const yellow = cases.filter((c) => c.light_status === "yellow").length;
   return { total, pending, green, red, yellow };
 }

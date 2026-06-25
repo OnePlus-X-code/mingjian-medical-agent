@@ -13,7 +13,7 @@ import {
 import { LightDot } from "@/components/light-badge";
 import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils";
-import type { HumanAction, ReviewCase } from "@/types/review";
+import type { HumanAction, ReviewCase, SuggestedAction } from "@/types/review";
 
 interface CaseTableProps {
   cases: ReviewCase[];
@@ -26,6 +26,18 @@ const yuan = new Intl.NumberFormat("zh-CN", {
   currency: "CNY",
   maximumFractionDigits: 0,
 });
+
+const SUGGESTED_ACTION_LABEL: Record<SuggestedAction, string> = {
+  approve: "建议放行",
+  reject: "建议打回",
+  manual_review: "建议人工",
+};
+
+const SUGGESTED_ACTION_STYLE: Record<SuggestedAction, string> = {
+  approve: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  reject: "bg-rose-50 text-rose-700 ring-rose-200",
+  manual_review: "bg-amber-50 text-amber-700 ring-amber-200",
+};
 
 export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
   return (
@@ -40,6 +52,7 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
             <TableHead className="min-w-[180px]">命中规则</TableHead>
             <TableHead className="w-[110px] text-right">金额</TableHead>
             <TableHead className="w-[110px]">置信度</TableHead>
+            <TableHead className="w-[110px]">Agent 建议</TableHead>
             <TableHead className="w-[100px]">当前状态</TableHead>
             <TableHead className="w-[260px] text-right">操作</TableHead>
           </TableRow>
@@ -47,7 +60,7 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
         <TableBody>
           {cases.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="h-40 text-center">
+              <TableCell colSpan={10} className="h-40 text-center">
                 <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
                   <Inbox className="size-6" />
                   <div className="text-sm">没有符合筛选条件的案例</div>
@@ -74,7 +87,12 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
                   <LightDot status={c.light_status} />
                 </TableCell>
                 <TableCell className="font-mono text-xs font-medium text-slate-700">
-                  {c.case_id}
+                  <div>{c.case_id}</div>
+                  {c.reviewed_at && (
+                    <div className="mt-1 font-sans text-[11px] font-normal text-slate-400">
+                      {c.reviewed_at}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="font-medium text-slate-800">
@@ -100,6 +118,16 @@ export function CaseTable({ cases, onRowClick, onAction }: CaseTableProps) {
                 </TableCell>
                 <TableCell>
                   <ConfidenceCell value={c.confidence} status={c.light_status} />
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset",
+                      SUGGESTED_ACTION_STYLE[c.suggested_action]
+                    )}
+                  >
+                    {SUGGESTED_ACTION_LABEL[c.suggested_action]}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={c.current_status} />

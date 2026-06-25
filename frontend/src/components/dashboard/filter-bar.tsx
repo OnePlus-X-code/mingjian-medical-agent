@@ -7,14 +7,16 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import type { LightStatus } from "@/types/review";
+
+export type DateFilter = "all" | "today" | "last_3_days" | "last_7_days";
 
 export interface FilterState {
   hospital: string;
   department: string;
   status: LightStatus | "all";
+  date: DateFilter;
   keyword: string;
 }
 
@@ -37,6 +39,18 @@ export function FilterBar({
 }: FilterBarProps) {
   const set = <K extends keyof FilterState>(k: K, v: FilterState[K]) =>
     onChange({ ...value, [k]: v });
+  const statusLabel = {
+    all: "全部状态",
+    green: "建议放行",
+    yellow: "建议人工",
+    red: "建议打回",
+  }[value.status];
+  const dateLabel = {
+    all: "全部日期",
+    today: "今日复核",
+    last_3_days: "近 3 日",
+    last_7_days: "近 7 日",
+  }[value.date];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -48,7 +62,9 @@ export function FilterBar({
             onValueChange={(v) => set("hospital", v ?? "all")}
           >
             <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="全部医院" />
+              <span className="truncate">
+                {value.hospital === "all" ? "全部医院" : value.hospital}
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部医院</SelectItem>
@@ -68,7 +84,9 @@ export function FilterBar({
             onValueChange={(v) => set("department", v ?? "all")}
           >
             <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="全部科室" />
+              <span className="truncate">
+                {value.department === "all" ? "全部科室" : value.department}
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部科室</SelectItem>
@@ -90,13 +108,33 @@ export function FilterBar({
             }
           >
             <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="全部状态" />
+              <span className="truncate">{statusLabel}</span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部状态</SelectItem>
               <SelectItem value="green">🟢 建议放行</SelectItem>
               <SelectItem value="yellow">🟡 建议人工</SelectItem>
               <SelectItem value="red">🔴 建议打回</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-slate-500">日期</span>
+          <Select
+            value={value.date}
+            onValueChange={(v) =>
+              set("date", (v ?? "all") as FilterState["date"])
+            }
+          >
+            <SelectTrigger className="h-9 w-[140px]">
+              <span className="truncate">{dateLabel}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部日期</SelectItem>
+              <SelectItem value="today">今日复核</SelectItem>
+              <SelectItem value="last_3_days">近 3 日</SelectItem>
+              <SelectItem value="last_7_days">近 7 日</SelectItem>
             </SelectContent>
           </Select>
         </div>

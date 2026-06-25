@@ -1,6 +1,7 @@
 [
   {
     "case_id": "SC001",
+    "reviewed_at": "2026-06-25",
     "hospital_name": "A医院",
     "department": "心内科",
     "drg_group": "FB29 冠脉支架植入相关组",
@@ -61,6 +62,7 @@
   },
   {
     "case_id": "SC002",
+    "reviewed_at": "2026-06-25",
     "hospital_name": "B医院",
     "department": "骨科",
     "drg_group": "IB29 髋关节置换组",
@@ -109,6 +111,7 @@
   },
   {
     "case_id": "SC003",
+    "reviewed_at": "2026-06-25",
     "hospital_name": "C医院",
     "department": "神经外科",
     "drg_group": "BB19 颅内血管疾病手术组",
@@ -164,6 +167,7 @@
   },
   {
     "case_id": "SC004",
+    "reviewed_at": "2026-06-25",
     "hospital_name": "A医院",
     "department": "心内科",
     "drg_group": "FB39 永久起搏器植入组",
@@ -212,6 +216,7 @@
   },
   {
     "case_id": "SC005",
+    "reviewed_at": "2026-06-24",
     "hospital_name": "B医院",
     "department": "消化内科",
     "drg_group": "GZ19 消化系统疾病诊断组",
@@ -260,6 +265,7 @@
   },
   {
     "case_id": "SC006",
+    "reviewed_at": "2026-06-24",
     "hospital_name": "C医院",
     "department": "肿瘤科",
     "drg_group": "RW19 恶性肿瘤治疗组",
@@ -308,6 +314,7 @@
   },
   {
     "case_id": "SC007",
+    "reviewed_at": "2026-06-23",
     "hospital_name": "A医院",
     "department": "消化内科",
     "drg_group": "HC19 胆道手术组",
@@ -356,6 +363,7 @@
   },
   {
     "case_id": "SC008",
+    "reviewed_at": "2026-06-23",
     "hospital_name": "B医院",
     "department": "妇产科",
     "drg_group": "OF29 剖宫产组",
@@ -404,6 +412,7 @@
   },
   {
     "case_id": "SC009",
+    "reviewed_at": "2026-06-22",
     "hospital_name": "C医院",
     "department": "呼吸内科",
     "drg_group": "ES19 呼吸系统感染组",
@@ -459,6 +468,7 @@
   },
   {
     "case_id": "SC010",
+    "reviewed_at": "2026-06-21",
     "hospital_name": "A医院",
     "department": "骨科",
     "drg_group": "IB39 脊柱融合手术组",

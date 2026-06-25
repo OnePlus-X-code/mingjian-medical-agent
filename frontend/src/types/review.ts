@@ -30,6 +30,7 @@ export interface EvidenceStep {
 
 export interface ReviewCase {
   case_id: string;
+  reviewed_at?: string;
   hospital_name: string;
   department: string;
   drg_group: string;
