@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Activity,
   Building2,
@@ -8,8 +9,10 @@ import {
   Gauge,
   History,
   Library,
+  Loader2,
   RotateCcw,
   ShieldAlert,
+  Sparkles,
   Stethoscope,
   Workflow,
   XCircle,
@@ -45,6 +48,7 @@ interface CaseDetailDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAction?: (c: ReviewCase, action: HumanAction) => void;
+  onAgentReview?: (c: ReviewCase) => Promise<ReviewCase | null>;
   caseFeedbacks?: ManualAction[];
 }
 
@@ -53,6 +57,7 @@ export function CaseDetailDrawer({
   open,
   onOpenChange,
   onAction,
+  onAgentReview,
   caseFeedbacks = [],
 }: CaseDetailDrawerProps) {
   return (
@@ -74,7 +79,7 @@ export function CaseDetailDrawer({
                 <FeedbackSection feedbacks={caseFeedbacks} />
               </div>
             </ScrollArea>
-            <DrawerFooter caseItem={caseItem} onAction={onAction} />
+            <DrawerFooter caseItem={caseItem} onAction={onAction} onAgentReview={onAgentReview} />
           </>
         )}
       </SheetContent>
@@ -362,26 +367,56 @@ function FeedbackSection({ feedbacks }: { feedbacks: ManualAction[] }) {
 function DrawerFooter({
   caseItem,
   onAction,
+  onAgentReview,
 }: {
   caseItem: ReviewCase;
   onAction?: (c: ReviewCase, action: HumanAction) => void;
+  onAgentReview?: (c: ReviewCase) => Promise<ReviewCase | null>;
 }) {
+  const [reviewing, setReviewing] = useState(false);
   const processed = caseItem.current_status !== "pending";
+
+  const handleAgentReview = async () => {
+    if (!onAgentReview || reviewing) return;
+    setReviewing(true);
+    await onAgentReview(caseItem);
+    setReviewing(false);
+  };
+
   return (
     <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-white px-6 py-3 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.08)]">
       <div className="text-xs text-slate-500">
-        {processed
-          ? "该案例已处置，操作记录已写入反馈库"
-          : "审核员的最终判断会写入反馈记录，用于优化 Agent 判断逻辑"}
+        {reviewing
+          ? "Agent 复核中..."
+          : processed
+            ? "该案例已处置，操作记录已写入反馈库"
+            : "审核员的最终判断会写入反馈记录，用于优化 Agent 判断逻辑"}
       </div>
       {processed ? (
         <StatusBadge status={caseItem.current_status} />
       ) : (
         <div className="flex gap-2">
+          {onAgentReview && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800"
+              disabled={reviewing}
+              onClick={handleAgentReview}
+            >
+              {reviewing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {reviewing ? "复核中..." : "Agent 复核"}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
             className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+            disabled={reviewing}
             onClick={() => onAction?.(caseItem, "reject")}
           >
             <XCircle className="size-4" />
@@ -391,6 +426,7 @@ function DrawerFooter({
             variant="outline"
             size="sm"
             className="border-sky-200 text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+            disabled={reviewing}
             onClick={() => onAction?.(caseItem, "manual_review")}
           >
             <RotateCcw className="size-4" />
@@ -399,6 +435,7 @@ function DrawerFooter({
           <Button
             size="sm"
             className="bg-emerald-600 text-white hover:bg-emerald-700"
+            disabled={reviewing}
             onClick={() => onAction?.(caseItem, "approve")}
           >
             <CheckCircle2 className="size-4" />

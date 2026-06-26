@@ -1,0 +1,99 @@
+# 明鉴 · 医保监管智能体 — 后端
+
+Demo 级 FastAPI 后端，为前端 `/console` 控制台提供 API。
+
+## 启动方式
+
+```bash
+cd backend
+python -m venv .venv
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8800
+```
+
+> **Windows 端口说明**：如果 8000 端口被 Windows HNS 保留（报错 `Errno 13`），
+> 可改用其他端口启动，例如 `--port 8800`，并在前端 `.env.local` 中设置
+> `NEXT_PUBLIC_API_BASE_URL=http://localhost:8800`。
+> 释放 8000 端口需以管理员身份执行 `net stop winnat && net start winnat`。
+
+## 访问地址
+
+- 后端服务：http://localhost:8800
+- API 文档：http://localhost:8800/docs
+- 健康检查：http://localhost:8800/health
+
+## LLM 配置（Agent 智能复核）
+
+### 启用真实 LLM 调用
+
+若要启用真实 Agent 调用，需要在 `backend/.env` 中设置：
+
+```env
+LLM_ENABLED=true
+LLM_API_KEY=your-api-key-here
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-v4-flash
+LLM_TIMEOUT_SECONDS=20
+```
+
+- **API Key 只允许放在 `backend/.env`**，不允许出现在前端代码中
+- 前端 `frontend/.env.local` 只放 `NEXT_PUBLIC_API_BASE_URL`
+- `LLM_ENABLED=false` 时使用规则兜底模式，无需配置 API Key
+- 如果 LLM 调用失败（网络错误、超时、返回格式错误），自动 fallback 到规则兜底
+
+### 环境变量说明
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `DATA_DIR` | 数据目录路径（相对于 backend/） | `../data` |
+| `FRONTEND_ORIGINS` | 允许的前端跨域来源（逗号分隔） | `http://localhost:3000,...` |
+| `LLM_ENABLED` | 是否启用 LLM 调用 | `false` |
+| `LLM_API_KEY` | OpenAI 兼容 API Key | （空） |
+| `LLM_BASE_URL` | API Base URL | （空） |
+| `LLM_MODEL` | 模型名称 | （空） |
+| `LLM_TIMEOUT_SECONDS` | 请求超时秒数 | `20` |
+
+复制 `.env.example` 为 `.env` 并按需修改：
+
+```bash
+cp .env.example .env
+```
+
+## 已实现接口
+
+| Method | Path | 说明 |
+| --- | --- | --- |
+| GET | `/health` | 健康检查 |
+| GET | `/review-cases` | 获取复核案例列表（支持 status/hospital/department/keyword 筛选 + 分页） |
+| GET | `/review-cases/{case_id}` | 获取单条案例详情（含 evidence_chain / matched_cases / history_actions） |
+| POST | `/actions` | 提交人工动作（放行 / 打回 / 转人工） |
+| GET | `/feedbacks?limit=5` | 获取近期人工反馈记录 |
+| POST | `/agent/review-one` | Agent 智能复核（调用 LLM 或规则兜底） |
+
+## Demo 数据重置
+
+如需恢复 demo 数据基线（MA001-MA005，SC006-SC010 恢复为 pending）：
+
+```bash
+cd backend
+python scripts/reset_demo_data.py
+```
+
+此脚本不会在后端启动时自动执行。
+
+## 数据源
+
+后端读取根目录 `data/` 目录下的 JSON 文件：
+
+- `data/review_cases.json` — 病例列表与详情
+- `data/manual_actions.json` — 人工动作记录（用于详情中的 history_actions）
+- `data/suspect_cases.json` — DRG 疑似违规病例
+- `data/appeal_cases.json` — 历史申诉案例
+- `data/hospital_profiles.json` — 医院科室画像

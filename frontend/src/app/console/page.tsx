@@ -17,6 +17,7 @@ import {
   getRecentFeedbacks,
   getReviewCases,
   submitAction,
+  triggerAgentReview,
 } from "@/lib/api";
 import reviewCasesData from "@/mock/review_cases.json";
 import manualActionsData from "@/mock/manual_actions.json";
@@ -207,10 +208,66 @@ export default function DashboardPage() {
     applyAction(c, action);
   };
 
-  const handleConfirmReject = (reason: string) => {
+  const handleConfirmReject = async (reason: string) => {
     if (!pendingReject) return;
-    applyAction(pendingReject, "reject", reason);
-    setPendingReject(null);
+    const c = pendingReject;
+    const newStatus = STATUS_BY_ACTION.reject;
+
+    const savedAction = await submitAction({
+      case_id: c.case_id,
+      agent_status: c.light_status,
+      human_action: "reject",
+      human_reason: reason,
+      operator: OPERATOR,
+    });
+
+    setCases((prev) =>
+      prev.map((x) =>
+        x.case_id === c.case_id ? { ...x, current_status: newStatus } : x
+      )
+    );
+    setFeedbacks((prev) => [
+      {
+        ...savedAction,
+        hospital_name: savedAction.hospital_name ?? c.hospital_name,
+        department: savedAction.department ?? c.department,
+      },
+      ...prev,
+    ]);
+
+    toast.warning(`已打回绿灯案例 ${c.case_id}`, {
+      description: `已记录人工理由，将用于优化 Agent 判断逻辑`,
+    });
+
+    // pendingReject is cleared by onOpenChange(false) after this resolves
+  };
+
+  const handleAgentReview = async (
+    c: ReviewCase
+  ): Promise<ReviewCase | null> => {
+    try {
+      const updated = await triggerAgentReview(c.case_id);
+      if (updated) {
+        setCases((prev) =>
+          prev.map((x) =>
+            x.case_id === updated.case_id ? { ...x, ...updated } : x
+          )
+        );
+        toast.success("Agent 复核完成", {
+          description: `${c.case_id} · ${c.hospital_name}`,
+        });
+        return updated;
+      }
+      toast.info("Agent 复核完成", {
+        description: "使用本地数据返回",
+      });
+      return null;
+    } catch {
+      toast.error("Agent 复核失败，已保留当前结果", {
+        description: `${c.case_id} · 请检查后端服务`,
+      });
+      return null;
+    }
   };
 
   const recentFeedbacks = useMemo(
@@ -251,6 +308,7 @@ export default function DashboardPage() {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         onAction={handleAction}
+        onAgentReview={handleAgentReview}
         caseFeedbacks={caseFeedbacks}
       />
       <RejectReasonDialog

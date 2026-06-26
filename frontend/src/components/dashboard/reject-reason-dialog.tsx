@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { LightBadge } from "@/components/light-badge";
 import type { ReviewCase } from "@/types/review";
 
@@ -20,7 +18,7 @@ interface RejectReasonDialogProps {
   caseItem: ReviewCase | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (reason: string) => void;
+  onConfirm: (reason: string) => Promise<void> | void;
 }
 
 export function RejectReasonDialog({
@@ -32,8 +30,8 @@ export function RejectReasonDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <RejectReasonContent
-        key={caseItem?.case_id ?? "empty"}
         caseItem={caseItem}
+        open={open}
         onOpenChange={onOpenChange}
         onConfirm={onConfirm}
       />
@@ -43,87 +41,106 @@ export function RejectReasonDialog({
 
 function RejectReasonContent({
   caseItem,
+  open,
   onOpenChange,
   onConfirm,
-}: Omit<RejectReasonDialogProps, "open">) {
+}: Omit<RejectReasonDialogProps, "open"> & { open: boolean }) {
   const [reason, setReason] = useState("");
   const [touched, setTouched] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Reset internal state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setReason("");
+      setTouched(false);
+      setSubmitting(false);
+    }
+  }, [open]);
 
   const trimmed = reason.trim();
   const valid = trimmed.length >= 5;
-  const showError = touched && !valid;
 
-  const submit = () => {
-    if (!valid) {
-      setTouched(true);
-      return;
+  const handleSubmit = async () => {
+    if (!valid || submitting) return;
+    setTouched(true);
+    setSubmitting(true);
+    try {
+      await onConfirm(trimmed);
+      onOpenChange(false);
+    } catch {
+      // Error toast handled by parent; allow retry
+      setSubmitting(false);
     }
-    onConfirm(trimmed);
   };
 
   return (
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <div className="flex items-center gap-2">
-          <div className="grid size-7 place-items-center rounded-md bg-amber-50 text-amber-600">
-            <AlertTriangle className="size-4" />
-          </div>
-          <DialogTitle>打回绿灯案例需说明理由</DialogTitle>
-        </div>
-        <DialogDescription className="text-slate-600">
-          Agent 建议放行该案例，但你选择打回。请填写理由，反馈将用于优化
-          Agent 判断逻辑与规则适用边界。
+        <DialogTitle>打回绿灯案例需说明理由</DialogTitle>
+        <DialogDescription>
+          绿灯案例表示 Agent 建议放行，打回需提供充分理由以优化模型判断。
         </DialogDescription>
       </DialogHeader>
 
       {caseItem && (
-        <div className="rounded-lg border bg-slate-50 p-3 text-xs">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <div className="flex items-center gap-2">
-            <LightBadge status={caseItem.light_status} />
-            <span className="font-mono text-slate-600">
+            <span className="font-mono text-sm font-medium">
               {caseItem.case_id}
             </span>
-            <span className="text-slate-600">
+            <LightBadge status={caseItem.light_status} />
+            <span className="text-xs text-muted-foreground">
               {caseItem.hospital_name} · {caseItem.department}
             </span>
           </div>
-          <div className="mt-1 line-clamp-1 text-slate-700">
-            {caseItem.procedure_or_item} · {caseItem.trigger_rule}
-          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {caseItem.main_diagnosis}
+          </p>
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="reject-reason" className="text-sm">
-          打回理由 <span className="text-rose-600">*</span>
-        </Label>
+        <label className="text-sm font-medium">打回理由</label>
         <Textarea
-          id="reject-reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           onBlur={() => setTouched(true)}
-          placeholder="例如：本次病例缺少术中影像证据，与 Agent 匹配的历史案例特征虽相似，但本例耗材使用与术中记录不一致，暂不放行。"
-          rows={4}
+          placeholder="请输入打回理由（至少 5 个字）"
+          rows={3}
           className="resize-none"
+          disabled={submitting}
         />
-        <div className="flex justify-between text-xs">
-          <span className={showError ? "text-rose-600" : "text-slate-400"}>
-            {showError ? "请填写至少 5 个字符" : "至少 5 个字符"}
+        <div className="flex items-center justify-between">
+          {touched && !valid ? (
+            <span className="text-xs text-rose-500">
+              理由至少需要 5 个字
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground" />
+          )}
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {trimmed.length} 字
           </span>
-          <span className="text-slate-400">{trimmed.length} 字</span>
         </div>
       </div>
 
       <DialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          disabled={submitting}
+        >
           取消
         </Button>
         <Button
+          type="button"
           className="bg-rose-600 text-white hover:bg-rose-700"
-          disabled={!valid}
-          onClick={submit}
+          disabled={!valid || submitting}
+          onClick={handleSubmit}
         >
-          确认打回
+          {submitting ? "提交中..." : "确认打回"}
         </Button>
       </DialogFooter>
     </DialogContent>

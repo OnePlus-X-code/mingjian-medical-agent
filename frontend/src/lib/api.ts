@@ -9,7 +9,7 @@ import type {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-const API_TIMEOUT_MS = 1200;
+const API_TIMEOUT_MS = 5000;
 
 const REVIEW_CASES = reviewCasesData as ReviewCase[];
 const MANUAL_ACTIONS = manualActionsData as ManualAction[];
@@ -51,11 +51,16 @@ async function requestJson(path: string, init?: RequestInit): Promise<ApiData> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
+  // GET requests don't need Content-Type header; omitting it avoids CORS preflight
+  const isPost = init?.method === "POST";
+  const headers: Record<string, string> = {};
+  if (isPost) headers["Content-Type"] = "application/json";
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     signal: controller.signal,
     headers: {
-      "Content-Type": "application/json",
+      ...headers,
       ...init?.headers,
     },
   }).finally(() => window.clearTimeout(timeout));
@@ -203,6 +208,24 @@ function lightFromAction(action: HumanAction): LightStatus {
   if (action === "approve") return "green";
   if (action === "reject") return "red";
   return "yellow";
+}
+
+export async function triggerAgentReview(
+  caseId: string
+): Promise<ReviewCase | null> {
+  const localCase = REVIEW_CASES.find((c) => c.case_id === caseId);
+
+  try {
+    const payload = await requestJson("/agent/review-one", {
+      method: "POST",
+      body: JSON.stringify({ case_id: caseId }),
+    });
+    const data = unwrapObject(payload);
+    return data ? (data as unknown as ReviewCase) : localCase ?? null;
+  } catch {
+    // Fall back to local demo data when the backend is not running.
+    return localCase ?? null;
+  }
 }
 
 export function getFilterOptions(cases: ReviewCase[] = REVIEW_CASES) {
