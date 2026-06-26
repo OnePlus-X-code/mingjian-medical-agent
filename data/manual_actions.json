@@ -1,0 +1,61 @@
+[
+  {
+    "action_id": "MA001",
+    "case_id": "SC004",
+    "hospital_name": "A医院",
+    "department": "心内科",
+    "agent_status": "green",
+    "human_action": "approve",
+    "operator": "医保审核员01",
+    "created_at": "2026-06-25 09:14:22",
+    "is_agent_accepted": true
+  },
+  {
+    "action_id": "MA002",
+    "case_id": "SC005",
+    "hospital_name": "B医院",
+    "department": "消化内科",
+    "agent_status": "red",
+    "human_action": "reject",
+    "human_reason": "经核查 HIS 日志，确认医院重复上报，已要求医院核销重复部分。",
+    "operator": "医保审核员02",
+    "created_at": "2026-06-25 09:42:11",
+    "is_agent_accepted": true
+  },
+  {
+    "action_id": "MA003",
+    "case_id": "SC003",
+    "hospital_name": "C医院",
+    "department": "神经外科",
+    "agent_status": "yellow",
+    "human_action": "manual_review",
+    "human_reason": "已转专家组审阅术中 DSA 影像，待回复。",
+    "operator": "医保审核员01",
+    "created_at": "2026-06-24 17:28:55",
+    "is_agent_accepted": true
+  },
+  {
+    "action_id": "MA004",
+    "case_id": "SC002",
+    "hospital_name": "B医院",
+    "department": "骨科",
+    "agent_status": "red",
+    "human_action": "reject",
+    "human_reason": "术式与耗材清单严重不符，已下发整改通知。",
+    "operator": "医保审核员03",
+    "created_at": "2026-06-24 16:03:18",
+    "is_agent_accepted": true
+  },
+  {
+    "action_id": "MA005",
+    "case_id": "SC001",
+    "hospital_name": "A医院",
+    "department": "心内科",
+    "agent_status": "green",
+    "human_action": "reject",
+    "human_reason": "病例缺少术中影像证据，与 Agent 匹配的历史案例特征虽相似，但本例耗材使用与术中记录不一致，暂不放行。",
+    "operator": "医保审核员02",
+    "created_at": "2026-06-24 15:21:40",
+    "is_agent_accepted": false
+  }
+]
