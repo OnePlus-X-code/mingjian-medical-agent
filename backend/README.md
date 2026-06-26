@@ -95,7 +95,19 @@ cd backend
 python scripts/reset_demo_data.py
 ```
 
-此脚本不会在后端启动时自动执行。
+此脚本不会修改 `appeal_cases.json`、`hospital_profiles.json`、`suspect_cases.json`，这三份数据在 reset 后保持不变。
+
+## Agent 分析流水线
+
+点击「同步 DRG 疑点」时，后端执行五阶段分析：
+
+1. **数据归一化**：`normalize_suspect_case()` 将 DRG 疑点转换为统一 ReviewCase 格式
+2. **相似申诉案例匹配**：`_match_appeal_cases()` 使用 7 维加权评分（同医院/同科室/诊断关键词/项目关键词/命中规则/risk_reason 重合/成功申诉），取 Top 3，归一化到 0~1
+3. **医院画像读取**：`_get_hospital_profile()` 匹配医院等级、风险等级、历史违规次数、申诉成功率
+4. **LLM 智能分析**：将 case_brief + matched_cases + hospital_profile 注入 Prompt，调用 LLM 生成结构化 JSON（light_status / confidence / suggested_action / agent_reason / evidence_chain）
+5. **规则兜底**：LLM 不可用时，基于 matched_cases 成功/失败比例 + 高风险关键词 + 医院画像动态生成结果，不依赖预写值
+
+证据链包含 5 步：DRG初筛 → 病历关键点 → 相似申诉案例匹配 → 医院画像参考 → 复核建议生成。
 
 ## 数据源
 
@@ -104,5 +116,5 @@ python scripts/reset_demo_data.py
 - `data/review_cases.json` — 病例列表与详情
 - `data/manual_actions.json` — 人工动作记录（用于详情中的 history_actions）
 - `data/suspect_cases.json` — DRG 疑似违规病例（SC011-SC013，用于「同步 DRG 疑点」演示）
-- `data/appeal_cases.json` — 历史申诉案例
-- `data/hospital_profiles.json` — 医院科室画像
+- `data/appeal_cases.json` — 历史申诉案例库（10 条，覆盖 A/B/C 医院和心内科/骨科/肿瘤科）
+- `data/hospital_profiles.json` — 医院画像（5 家，含 A/B/C 医院的等级、风险等级、违规次数、申诉成功率）

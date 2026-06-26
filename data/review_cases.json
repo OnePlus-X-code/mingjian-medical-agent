@@ -359,7 +359,7 @@
         "source": "相似历史申诉案例列表"
       }
     ],
-    "current_status": "rejected"
+    "current_status": "pending"
   },
   {
     "case_id": "SC008",
@@ -527,33 +527,50 @@
     "risk_reason": "DRG 分组为 EL1A（复杂心血管介入），但手术记录仅显示冠脉造影，实际未行介入治疗",
     "patient_summary": "男，65岁，不稳定型心绞痛。行冠脉造影显示前降支中段50%狭窄，未行介入治疗。病历中 DRG 分组为 EL1A，但手术记录仅包含造影操作。",
     "light_status": "red",
-    "confidence": 0.95,
+    "confidence": 0.92,
     "suggested_action": "reject",
-    "agent_reason": "病例手术记录仅包含冠脉造影，未行介入治疗，但DRG分组为EL1A（复杂心血管介入），属于分组高套。诊疗项目与DRG分组缺乏合理对应，且无历史申诉案例支持临床解释。",
+    "agent_reason": "该病例与历史打回案例AP-2024-008高度相似（狭窄程度同为50%且未行PCI），DRG分组EL1A仅因冠脉造影而高套，缺乏介入治疗依据，不符合分组标准。",
     "evidence_chain": [
       {
-        "step": "审核病例信息",
-        "content": "主诊断为不稳定型心绞痛，手术记录仅显示冠状动脉造影术，未行介入治疗。",
+        "step": "规则触发分析",
+        "content": "病例触发DRG高套分值规则，因手术记录仅含冠脉造影，未行介入治疗，但分组为EL1A（复杂心血管介入）。",
         "source": "疑似违规病例"
       },
       {
-        "step": "比对DRG分组与手术操作",
-        "content": "DRG分组EL1A（复杂心血管介入）要求包含介入治疗操作，但实际仅行造影，不满足分组条件。",
-        "source": "疑似违规病例"
-      },
-      {
-        "step": "判断关联性",
-        "content": "冠脉造影与不稳定型心绞痛诊断具有合理关联，但DRG高套分值导致违规。",
-        "source": "疑似违规病例"
-      },
-      {
-        "step": "参考历史案例",
-        "content": "无相似历史申诉案例。",
+        "step": "相似历史案例对比",
+        "content": "历史打回案例AP-2024-008（相似度0.96）中，冠脉造影显示50%狭窄未行PCI，被判定为高套分组；而成功申诉案例AP-2024-001（相似度0.98）狭窄70%更符合介入指征，与当前50%狭窄不符。",
         "source": "相似历史申诉案例"
+      },
+      {
+        "step": "医院科室画像评估",
+        "content": "A医院心内科近12个月有3次DRG高套疑点，申诉成功率中等，且曾因冠脉造影分组争议被重点核查，风险倾向不支持申诉。",
+        "source": "医院/科室画像"
       }
     ],
-    "matched_cases": [],
-    "reviewed_at": "2026-06-26 22:28:00",
+    "matched_cases": [
+      {
+        "appeal_id": "AP-2024-001",
+        "similarity": 0.98,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院心内科冠脉造影病例，患者不稳定型心绞痛，造影显示前降支70%狭窄，系统自动归入EL1A组。申诉后经专家认定分组正确，维持原分组。"
+      },
+      {
+        "appeal_id": "AP-2024-008",
+        "similarity": 0.96,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "A医院心内科冠脉造影病例，造影显示前降支50%狭窄未行PCI，DRG归入EL1A高权重组。经查无介入治疗记录，判定为高套分组。"
+      },
+      {
+        "appeal_id": "AP-2024-002",
+        "similarity": 0.8,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院心内科急性心梗病例，行急诊PCI+药物支架植入，DRG归入EL1A。申诉认定PCI属复杂心血管介入，分组合理。"
+      }
+    ],
+    "reviewed_at": "2026-06-26 23:31:50",
     "current_status": "pending"
   },
   {
@@ -567,29 +584,51 @@
     "trigger_rule": "高价耗材使用合理性",
     "risk_reason": "脊柱融合术中使用高价生物骨粉，但术中记录未明确记载使用部位和用量",
     "patient_summary": "女，58岁，腰椎管狭窄症 L4-L5。行后路腰椎融合术 + 椎间融合器植入。费用清单含 35000 元生物骨粉耗材，但手术记录中未明确记载骨粉使用量和植入位置。",
-    "light_status": "yellow",
-    "confidence": 0.6,
-    "suggested_action": "manual_review",
-    "agent_reason": "手术记录未明确记载生物骨粉的使用部位和用量，无法直接评估其合理性，需人工核实临床必要性。",
+    "light_status": "red",
+    "confidence": 0.85,
+    "suggested_action": "reject",
+    "agent_reason": "该病例手术记录未明确记载生物骨粉的使用部位和用量，与历史打回案例（AP-2024-005）高度相似，且医院骨科为高风险科室，生物骨粉使用异常疑点多、申诉成功率低，耗材使用合理性不足。",
     "evidence_chain": [
       {
-        "step": "识别触发规则",
-        "content": "病例因高价耗材使用合理性被触发，耗材为生物骨粉，费用35000元。",
+        "step": "疑似违规规则匹配",
+        "content": "触发高价耗材使用合理性规则，风险原因为脊柱融合术中使用高价生物骨粉，但术中记录未明确记载使用部位和用量。",
         "source": "疑似违规病例"
       },
       {
-        "step": "分析风险原因",
-        "content": "风险原因为术中记录未明确记载骨粉使用部位和用量。",
-        "source": "疑似违规病例"
+        "step": "历史相似案例对比",
+        "content": "相似成功案例（AP-2024-004）手术记录明确记载骨粉5g植入L4-L5间隙；打回案例（AP-2024-005）手术记录未记载用量和植入位置，最终被驳回；当前病例与打回案例特征一致。",
+        "source": "相似历史申诉案例"
       },
       {
-        "step": "检查病历摘要",
-        "content": "患者行后路腰椎融合术+椎间融合器植入，但手术记录中无骨粉具体使用信息。",
-        "source": "patient_summary"
+        "step": "医院科室画像分析",
+        "content": "B医院骨科为高风险科室，近12个月高价耗材异常疑点5次，生物骨粉使用量居全市前列，历史违规15次，申诉成功率仅35%。",
+        "source": "医院/科室画像"
       }
     ],
-    "matched_cases": [],
-    "reviewed_at": "2026-06-26 22:28:06",
+    "matched_cases": [
+      {
+        "appeal_id": "AP-2024-004",
+        "similarity": 0.98,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "B医院骨科腰椎管狭窄病例，行后路腰椎融合术+椎间融合器植入，使用生物骨粉。手术记录明确记载骨粉5g植入L4-L5间隙，申诉认定耗材使用合理。"
+      },
+      {
+        "appeal_id": "AP-2024-005",
+        "similarity": 0.96,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "B医院骨科腰椎间盘突出病例，行融合术使用生物骨粉3.5万元，但手术记录未记载用量和植入位置，判定为耗材使用不规范，申诉驳回。"
+      },
+      {
+        "appeal_id": "AP-2024-009",
+        "similarity": 0.96,
+        "case_type": "人工复核案例",
+        "review_result": "manual_review",
+        "summary": "B医院骨科腰椎管狭窄L4-L5病例，行后路融合术+融合器植入+生物骨粉，手术记录记载骨粉4g植入L4-L5间隙。因用量略高于常规，转人工复核。"
+      }
+    ],
+    "reviewed_at": "2026-06-26 23:31:58",
     "current_status": "pending"
   },
   {
@@ -606,31 +645,53 @@
     "light_status": "red",
     "confidence": 0.95,
     "suggested_action": "reject",
-    "agent_reason": "患者为结肠癌I期（pT1N0M0），NCCN指南明确推荐术后随访观察，无需辅助化疗。使用贝伐珠单抗联合FOLFOX化疗方案属于过度治疗，缺乏临床依据。无历史成功申诉案例或科室画像支持，应打回处理。",
+    "agent_reason": "I期结肠癌患者术后使用贝伐珠单抗+FOLFOX化疗，NCCN指南推荐I期结肠癌术后无须辅助化疗，且历史相似案例AP-2024-007（I期结肠癌，相同方案）被判定为过度治疗并驳回。当前病例与该打回案例高度相似（相似度0.96），无特殊临床解释支持该方案。",
     "evidence_chain": [
       {
-        "step": "识别疑似违规",
-        "content": "病例SC013，结肠癌I期，使用贝伐珠单抗+FOLFOX化疗方案，费用52000元，触发过度治疗/指南偏差规则。",
+        "step": "诊断分期确认",
+        "content": "病例主诊断为结肠恶性肿瘤I期（pT1N0M0），属于早期结肠癌。",
         "source": "疑似违规病例"
       },
       {
-        "step": "验证指南依据",
-        "content": "NCCN指南推荐I期结肠癌术后无需辅助化疗，该方案与指南明显不符。",
-        "source": "行业诊疗标准"
+        "step": "治疗方案与指南对比",
+        "content": "术后治疗方案为贝伐珠单抗+FOLFOX化疗6周期，NCCN指南推荐I期结肠癌术后仅需随访观察，无需辅助化疗或靶向治疗。",
+        "source": "疑似违规病例风险原因"
       },
       {
-        "step": "评估历史案例",
-        "content": "无相似历史成功申诉案例，无医院/科室画像支撑。",
-        "source": "历史申诉案例和科室画像"
+        "step": "历史相似案例匹配",
+        "content": "历史打回案例AP-2024-007（I期结肠癌，贝伐珠单抗+FOLFOX）相似度0.96，判定为过度治疗并驳回。",
+        "source": "相似历史申诉案例"
       },
       {
-        "step": "综合判断",
-        "content": "诊疗项目与诊断缺乏合理关联，属于过度治疗，应建议打回。",
-        "source": "判断标准"
+        "step": "医院科室画像",
+        "content": "C医院肿瘤科近12个月过度治疗疑点2次，靶向药物使用合理性需关注，且无特殊临床背景支持该方案。",
+        "source": "医院/科室画像"
       }
     ],
-    "matched_cases": [],
-    "reviewed_at": "2026-06-26 22:28:12",
+    "matched_cases": [
+      {
+        "appeal_id": "AP-2024-006",
+        "similarity": 0.98,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "C医院肿瘤科结肠癌III期病例，术后行贝伐珠单抗+FOLFOX化疗6周期。III期结肠癌指南推荐辅助化疗，申诉认定方案合理。"
+      },
+      {
+        "appeal_id": "AP-2024-007",
+        "similarity": 0.96,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "C医院肿瘤科结肠癌I期病例，术后行贝伐珠单抗+FOLFOX化疗。I期结肠癌NCCN指南推荐术后随访无需化疗，判定为过度治疗，申诉驳回。"
+      },
+      {
+        "appeal_id": "AP-2024-010",
+        "similarity": 0.96,
+        "case_type": "人工复核案例",
+        "review_result": "manual_review",
+        "summary": "C医院肿瘤科直肠癌II期病例，术后行贝伐珠单抗+FOLFIRI化疗。II期是否需辅助化疗存在指南争议，转人工复核。"
+      }
+    ],
+    "reviewed_at": "2026-06-26 23:32:03",
     "current_status": "pending"
   }
 ]

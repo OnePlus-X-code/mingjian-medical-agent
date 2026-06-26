@@ -57,17 +57,5 @@
     "operator": "医保审核员02",
     "created_at": "2026-06-24 15:21:40",
     "is_agent_accepted": false
-  },
-  {
-    "action_id": "MA006",
-    "case_id": "SC007",
-    "hospital_name": "A医院",
-    "department": "消化内科",
-    "agent_status": "green",
-    "human_action": "reject",
-    "human_reason": "同次操作多个高值耗材",
-    "operator": "王明",
-    "created_at": "2026-06-26 22:35:34",
-    "is_agent_accepted": false
   }
 ]

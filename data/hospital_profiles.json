@@ -2,6 +2,7 @@
   {
     "hospital_id": "H-001",
     "name": "市第一人民医院",
+    "hospital_name": "市第一人民医院",
     "level": "三甲",
     "address": "XX市XX区XX路100号",
     "departments": 32,
@@ -14,6 +15,7 @@
   {
     "hospital_id": "H-002",
     "name": "省中医院",
+    "hospital_name": "省中医院",
     "level": "三甲",
     "address": "XX市XX区XX路200号",
     "departments": 28,
@@ -22,5 +24,38 @@
     "violation_count": 2,
     "last_violation_date": "2023-11-05",
     "risk_level": "低"
+  },
+  {
+    "hospital_id": "H-003",
+    "name": "A医院",
+    "hospital_name": "A医院",
+    "hospital_level": "三甲",
+    "risk_level": "中",
+    "historical_violation_count": 8,
+    "appeal_success_rate": 0.45,
+    "common_departments": ["心内科", "神经内科", "急诊科"],
+    "notes": "心内科为重点科室，近12个月DRG高套分值疑点3次，申诉成功率中等。曾因冠脉造影DRG分组争议被重点核查。"
+  },
+  {
+    "hospital_id": "H-004",
+    "name": "B医院",
+    "hospital_name": "B医院",
+    "hospital_level": "三乙",
+    "risk_level": "高",
+    "historical_violation_count": 15,
+    "appeal_success_rate": 0.35,
+    "common_departments": ["骨科", "心内科", "消化内科"],
+    "notes": "骨科为高风险科室，近12个月高价耗材使用异常疑点5次，生物骨粉使用量居全市前列。申诉成功率偏低。"
+  },
+  {
+    "hospital_id": "H-005",
+    "name": "C医院",
+    "hospital_name": "C医院",
+    "hospital_level": "三甲",
+    "risk_level": "中",
+    "historical_violation_count": 6,
+    "appeal_success_rate": 0.55,
+    "common_departments": ["肿瘤科", "消化内科", "呼吸内科"],
+    "notes": "肿瘤科为主要科室，近12个月过度治疗疑点2次，靶向药物使用合理性需关注。申诉成功率略高于平均。"
   }
 ]

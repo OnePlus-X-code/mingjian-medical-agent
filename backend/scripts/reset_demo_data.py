@@ -10,6 +10,8 @@
     1. manual_actions.json 只保留 MA001-MA005
     2. review_cases.json 中 SC006-SC010 的 current_status 恢复为 pending
     3. SC001-SC005 的 current_status 与 MA001-MA005 同步
+    4. appeal_cases.json 和 hospital_profiles.json 不做修改（保留增强后的数据）
+    5. suspect_cases.json 不做修改（保留 SC011-SC013）
 """
 
 from __future__ import annotations
