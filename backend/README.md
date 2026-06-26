@@ -15,8 +15,16 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+
+# 开发模式（带热重载）
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8800
+
+# 正式演示（不要使用 --reload，避免文件写入触发重启）
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8800
 ```
+
+> **重要**：正式演示时不要使用 `--reload`。后端写入 `review_cases.json` 会触发 reload，
+> 导致前端紧接着的 GET 请求失败并 fallback 到 mock 数据。
 
 > **Windows 端口说明**：如果 8000 端口被 Windows HNS 保留（报错 `Errno 13`），
 > 可改用其他端口启动，例如 `--port 8800`，并在前端 `.env.local` 中设置
@@ -76,10 +84,11 @@ cp .env.example .env
 | POST | `/actions` | 提交人工动作（放行 / 打回 / 转人工） |
 | GET | `/feedbacks?limit=5` | 获取近期人工反馈记录 |
 | POST | `/agent/review-one` | Agent 智能复核（调用 LLM 或规则兜底） |
+| POST | `/agent/refresh-drg-cases` | 同步 DRG 疑点病例 + Agent 自动分析（默认 limit=3，每条独立 fallback） |
 
 ## Demo 数据重置
 
-如需恢复 demo 数据基线（MA001-MA005，SC006-SC010 恢复为 pending）：
+如需恢复 demo 数据基线（MA001-MA005，SC006-SC010 恢复为 pending，清理 DRG 同步导入的 SC011+ 病例）：
 
 ```bash
 cd backend
@@ -94,6 +103,6 @@ python scripts/reset_demo_data.py
 
 - `data/review_cases.json` — 病例列表与详情
 - `data/manual_actions.json` — 人工动作记录（用于详情中的 history_actions）
-- `data/suspect_cases.json` — DRG 疑似违规病例
+- `data/suspect_cases.json` — DRG 疑似违规病例（SC011-SC013，用于「同步 DRG 疑点」演示）
 - `data/appeal_cases.json` — 历史申诉案例
 - `data/hospital_profiles.json` — 医院科室画像

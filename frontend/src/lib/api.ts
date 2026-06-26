@@ -37,19 +37,27 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function buildQuery(query: ReviewCaseQuery) {
   const params = new URLSearchParams();
+  // 请求足够大的 page_size，确保一次返回全部病例（demo 级数据量 < 100）
+  params.set("page_size", "100");
   if (query.status && query.status !== "all") params.set("status", query.status);
   if (query.hospital && query.hospital !== "all")
     params.set("hospital", query.hospital);
   if (query.department && query.department !== "all")
     params.set("department", query.department);
   if (query.keyword?.trim()) params.set("keyword", query.keyword.trim());
-  const value = params.toString();
-  return value ? `?${value}` : "";
+  return `?${params.toString()}`;
 }
 
-async function requestJson(path: string, init?: RequestInit): Promise<ApiData> {
+async function requestJson(
+  path: string,
+  init?: RequestInit,
+  timeoutMs?: number
+): Promise<ApiData> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    timeoutMs ?? API_TIMEOUT_MS
+  );
 
   // GET requests don't need Content-Type header; omitting it avoids CORS preflight
   const isPost = init?.method === "POST";
@@ -225,6 +233,41 @@ export async function triggerAgentReview(
   } catch {
     // Fall back to local demo data when the backend is not running.
     return localCase ?? null;
+  }
+}
+
+export interface RefreshDrgResult {
+  imported_count: number;
+  skipped_count: number;
+  items: ReviewCase[];
+}
+
+export async function refreshDrgCases(
+  limit: number = 3
+): Promise<RefreshDrgResult> {
+  try {
+    // LLM processing for multiple cases can take 30+ seconds
+    const payload = await requestJson(
+      "/agent/refresh-drg-cases",
+      {
+        method: "POST",
+        body: JSON.stringify({ limit }),
+      },
+      60000
+    );
+    const data = isRecord(payload) ? payload.data : null;
+    if (data && isRecord(data)) {
+      const items = Array.isArray(data.items) ? data.items as ReviewCase[] : [];
+      return {
+        imported_count: typeof data.imported_count === "number" ? data.imported_count : 0,
+        skipped_count: typeof data.skipped_count === "number" ? data.skipped_count : 0,
+        items,
+      };
+    }
+    return { imported_count: 0, skipped_count: 0, items: [] };
+  } catch {
+    // Fall back to empty result when the backend is not running.
+    return { imported_count: 0, skipped_count: 0, items: [] };
   }
 }
 
