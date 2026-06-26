@@ -1,0 +1,518 @@
+[
+  {
+    "case_id": "SC001",
+    "reviewed_at": "2026-06-25",
+    "hospital_name": "A医院",
+    "department": "心内科",
+    "drg_group": "FB29 冠脉支架植入相关组",
+    "main_diagnosis": "复杂冠状动脉粥样硬化性心脏病",
+    "procedure_or_item": "冠脉支架×3",
+    "cost": 28600,
+    "trigger_rule": "高值耗材费用高于同组均值",
+    "risk_reason": "冠脉支架使用数量偏高（≥3枚）",
+    "patient_summary": "男，62岁，反复胸痛3年，近1月加重。既往陈旧性心梗病史。冠脉造影示前降支近段85%狭窄、回旋支中段75%狭窄、右冠中段80%狭窄。术中分段植入药物涂层支架3枚。",
+    "light_status": "green",
+    "confidence": 0.92,
+    "suggested_action": "approve",
+    "agent_reason": "该患者多支冠脉病变诊断明确，术前造影和术中记录完整，3枚支架使用与病情复杂度匹配。与A医院心内科近6个月内多例成功申诉案例特征高度相似，建议优先放行，减少医院重复申诉成本。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC012",
+        "similarity": 0.92,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院心内科复杂冠脉病变患者，前降支+回旋支+右冠多支严重狭窄，使用药物涂层支架×3，造影与术中记录齐全，最终申诉成功放行。"
+      },
+      {
+        "appeal_id": "AC018",
+        "similarity": 0.86,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院心内科陈旧心梗患者再发胸痛，多支血管狭窄，分段植入支架3枚，复核认定耗材使用与病情匹配。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "高值耗材费用 28600 元，高于 FB29 组同期均值 19500 元，系统标记疑似异常。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "在向量库中匹配到 A医院心内科 6 个月内 2 条成功申诉案例，最高相似度 92%。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "病例摘要显示三支血管严重狭窄（前降支 85% / 回旋支 75% / 右冠 80%），伴陈旧心梗，符合多支病变多支架植入指征。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "医院科室画像核验",
+        "content": "A医院心内科为区域心血管重症转诊中心，复杂病例比例较高，历史申诉成功率 78%。",
+        "source": "医院科室画像"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "病情复杂度与耗材使用数量匹配，且与历史成功申诉案例高度一致，建议直接放行，避免重复申诉。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC002",
+    "reviewed_at": "2026-06-25",
+    "hospital_name": "B医院",
+    "department": "骨科",
+    "drg_group": "IB29 髋关节置换组",
+    "main_diagnosis": "单侧髋关节骨性关节炎",
+    "procedure_or_item": "髋关节假体×2 + 骨水泥",
+    "cost": 76800,
+    "trigger_rule": "高值耗材使用数量异常",
+    "risk_reason": "单侧手术使用双侧髋关节假体，耗材数量与术式不匹配",
+    "patient_summary": "女，68岁，右髋疼痛3年，活动受限加重半年，无外伤史，无左髋症状。影像示右髋关节间隙明显变窄、骨赘形成。术式记录为右髋关节置换。",
+    "light_status": "red",
+    "confidence": 0.88,
+    "suggested_action": "reject",
+    "agent_reason": "病历明确为单侧右髋手术，无双侧置换指征，但费用清单出现 2 套髋关节假体，与术式严重不匹配。匹配到 B医院骨科近期 1 条同类打回案例，建议打回并要求医院核对手术记录与耗材清单。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC024",
+        "similarity": 0.85,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "B医院骨科单侧髋关节置换，费用清单出现双侧假体，医院申诉理由不充分，复核结论为打回。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "髋关节假体耗材数量为 2 套（76800 元），明显高于 IB29 组单侧置换均值。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "病历明确仅右髋症状、影像、术式，未见双侧置换适应症。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 B医院骨科 1 条相似打回案例（相似度 85%），同样为单侧手术使用双侧耗材。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "术式与耗材严重不匹配，且无合理解释路径，建议打回并要求医院核对清单。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC003",
+    "reviewed_at": "2026-06-25",
+    "hospital_name": "C医院",
+    "department": "神经外科",
+    "drg_group": "BB19 颅内血管疾病手术组",
+    "main_diagnosis": "颅内动脉瘤（未破裂）",
+    "procedure_or_item": "弹簧圈×6 + 颅内辅助支架",
+    "cost": 132400,
+    "trigger_rule": "高值耗材使用数量偏高",
+    "risk_reason": "单次介入栓塞使用弹簧圈数量偏多（≥6 枚）并联合支架植入",
+    "patient_summary": "男，54岁，体检发现颅内动脉瘤。DSA造影示前交通动脉瘤，瘤体直径 8mm，瘤颈宽约 5mm，形态不规则。术中行支架辅助弹簧圈栓塞。",
+    "light_status": "yellow",
+    "confidence": 0.62,
+    "suggested_action": "manual_review",
+    "agent_reason": "宽颈动脉瘤辅助支架植入有临床合理性，但弹簧圈 6 枚是否合理需结合术中 DSA 影像核对栓塞密度。历史相似案例既有成功申诉也有打回，证据链不足以单独判定，建议人工复核结合术中影像。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC031",
+        "similarity": 0.71,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "C医院神经外科宽颈动脉瘤患者，使用弹簧圈 5 枚 + 辅助支架，术中 DSA 显示完全闭塞，复核放行。"
+      },
+      {
+        "appeal_id": "AC042",
+        "similarity": 0.68,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "D医院神经外科窄颈动脉瘤患者，使用弹簧圈 6 枚 + 支架，复核认为弹簧圈数量不合理，未予放行。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "总费用 132400 元，弹簧圈与支架同次使用，高于 BB19 组均值。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "瘤颈宽 5mm，形态不规则，符合宽颈动脉瘤辅助支架植入适应症，但弹簧圈数量需结合栓塞密度判断。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 2 条相似案例，1 条成功申诉（相似度 71%）、1 条打回（相似度 68%），结论分化。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "证据链不足以单独判定，建议人工复核结合术中 DSA 影像与栓塞密度。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC004",
+    "reviewed_at": "2026-06-25",
+    "hospital_name": "A医院",
+    "department": "心内科",
+    "drg_group": "FB39 永久起搏器植入组",
+    "main_diagnosis": "病态窦房结综合征 + III 度房室传导阻滞",
+    "procedure_or_item": "双腔起搏器 + 心房电极 + 心室电极",
+    "cost": 42600,
+    "trigger_rule": "同日多项高值耗材",
+    "risk_reason": "起搏器与配套电极同日多项计费",
+    "patient_summary": "男，71岁，反复晕厥 3 月。24h 动态心电图示窦性停搏伴 RR 间期 >3 秒，符合 I 类起搏器植入指征。择期行双腔起搏器植入术。",
+    "light_status": "green",
+    "confidence": 0.89,
+    "suggested_action": "approve",
+    "agent_reason": "双腔起搏器需心房 + 心室双电极配套使用，三项耗材为同次植入的标准配置，并非重复计费。匹配到 A医院心内科多例成功申诉案例。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC008",
+        "similarity": 0.91,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院心内科患者植入双腔起搏器，起搏器与心房 / 心室电极同日计费，复核认定为标准配套，予以放行。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "同日 3 项高值耗材（起搏器 + 2 根电极），费用 42600 元，触发规则。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "医学常识核验",
+        "content": "双腔起搏器术式标准配置为起搏器主机 + 心房电极 + 心室电极，三项缺一不可。",
+        "source": "Agent"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 1 条 A医院心内科成功申诉案例（相似度 91%），耗材组合一致。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "标准配套耗材非重复计费，建议放行。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC005",
+    "reviewed_at": "2026-06-24",
+    "hospital_name": "B医院",
+    "department": "消化内科",
+    "drg_group": "GZ19 消化系统疾病诊断组",
+    "main_diagnosis": "慢性浅表性胃炎",
+    "procedure_or_item": "胃镜检查 × 3 次",
+    "cost": 1800,
+    "trigger_rule": "同日同项目重复计费",
+    "risk_reason": "同一患者同日 3 次胃镜检查，无临床合理解释",
+    "patient_summary": "女，45岁，上腹不适 1 周入院。当日 09:12 / 14:30 / 17:45 三次胃镜检查记录，结果均为慢性浅表性胃炎。无活检或治疗性操作记录。",
+    "light_status": "red",
+    "confidence": 0.94,
+    "suggested_action": "reject",
+    "agent_reason": "同日 3 次诊断性胃镜无任何治疗或活检指征，且结果均一致，明显违反临床合理诊疗逻辑。匹配到多条历史打回案例。建议打回并要求医院核查 HIS 系统记录是否存在重复录入。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC037",
+        "similarity": 0.93,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "B医院消化内科同日多次胃镜重复计费案例，医院申诉为系统问题但未提供 HIS 日志证据，复核打回。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "同一项目（胃镜检查）同日计费 3 次，触发重复计费规则。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "病例摘要显示 3 次检查均为诊断性，无活检或治疗操作，结果一致。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 1 条 B医院消化内科相似打回案例（相似度 93%）。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "无临床合理解释路径，与历史打回案例高度一致，建议打回。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC006",
+    "reviewed_at": "2026-06-24",
+    "hospital_name": "C医院",
+    "department": "肿瘤科",
+    "drg_group": "RW19 恶性肿瘤治疗组",
+    "main_diagnosis": "非小细胞肺癌（IIIB 期）",
+    "procedure_or_item": "帕博利珠单抗 + 紫杉醇方案",
+    "cost": 38900,
+    "trigger_rule": "高价靶向 / 免疫药物使用",
+    "risk_reason": "免疫检查点抑制剂使用需 PD-L1 表达检测支持",
+    "patient_summary": "女，58岁，非小细胞肺癌 IIIB 期。病历记载分子分型检测部分缺失，PD-L1 表达检测报告未在病历归档。",
+    "light_status": "yellow",
+    "confidence": 0.65,
+    "suggested_action": "manual_review",
+    "agent_reason": "免疫治疗在 IIIB 期非小细胞肺癌有合理适应症，但 PD-L1 检测报告缺失，证据链不完整。历史相似案例存在补充检测后通过复核的先例，建议人工复核并要求医院补充分子分型证据。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC019",
+        "similarity": 0.70,
+        "case_type": "人工复核案例",
+        "review_result": "manual_review",
+        "summary": "C医院肿瘤科患者免疫治疗证据链不完整，经补充 PD-L1 检测后通过复核。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "免疫治疗高价药物使用，单次费用 38900 元，触发审核规则。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "病历缺失 PD-L1 表达检测报告，分子分型证据链不完整。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 1 条相似人工复核案例（相似度 70%），补充检测后通过。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "证据链可补全，建议人工复核并要求医院补充分子分型报告。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC007",
+    "reviewed_at": "2026-06-23",
+    "hospital_name": "A医院",
+    "department": "消化内科",
+    "drg_group": "HC19 胆道手术组",
+    "main_diagnosis": "肝门部胆管癌伴梗阻性黄疸",
+    "procedure_or_item": "ERCP + 胆道金属支架 × 2",
+    "cost": 26400,
+    "trigger_rule": "同次操作多个高值耗材",
+    "risk_reason": "单次 ERCP 使用 2 个胆道支架",
+    "patient_summary": "男，67岁，进行性黄疸 2 月。MRCP 示肝门部胆管狭窄，分别累及左右肝管开口，Bismuth 分型 III a 型。术中左右肝管分别置入金属支架。",
+    "light_status": "green",
+    "confidence": 0.87,
+    "suggested_action": "approve",
+    "agent_reason": "Bismuth III 型肝门部胆管癌需双侧引流是临床共识，影像和术中记录均支持双支架使用合理。匹配到 A医院消化内科 1 条成功申诉案例。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC014",
+        "similarity": 0.86,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "A医院消化内科 Bismuth III 型肝门部胆管癌患者，双侧胆道支架引流，复核认定术式合理放行。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "单次操作使用 2 个胆道金属支架（26400 元），高于 HC19 组均值。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "MRCP 明确 Bismuth III a 型肝门部胆管癌，符合双侧引流指征。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 1 条 A医院消化内科成功申诉案例（相似度 86%）。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "影像与术式吻合，符合临床共识，建议放行。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC008",
+    "reviewed_at": "2026-06-23",
+    "hospital_name": "B医院",
+    "department": "妇产科",
+    "drg_group": "OF29 剖宫产组",
+    "main_diagnosis": "单胎活产 计划性剖宫产",
+    "procedure_or_item": "剖宫产 + 防粘连凝胶 × 3 + 自体血回输",
+    "cost": 18600,
+    "trigger_rule": "非必需耗材使用过量",
+    "risk_reason": "无既往腹部手术史使用 3 支防粘连凝胶，术中无明显出血却启用自体血回输",
+    "patient_summary": "女，29岁，单胎初产，计划性剖宫产，无既往腹部手术史，无瘢痕子宫。术中出血记录 280 ml，未达自体血回输指征。",
+    "light_status": "red",
+    "confidence": 0.86,
+    "suggested_action": "reject",
+    "agent_reason": "无既往腹部手术史、无粘连风险，3 支防粘连凝胶超出常规使用范围；术中出血 280 ml 未达自体血回输 (>800 ml) 指征。匹配到 B医院妇产科打回案例。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC028",
+        "similarity": 0.82,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "B医院妇产科初产无瘢痕子宫患者，使用多支防粘连凝胶，复核认定无指征打回。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "防粘连凝胶 3 支 + 自体血回输，非必需耗材费用高于 OF29 组均值。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "初产、无腹部手术史、术中出血 280 ml，无粘连风险与回输指征。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 B医院妇产科 1 条相似打回案例（相似度 82%）。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "无临床指征支持，建议打回并要求医院说明耗材使用理由。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC009",
+    "reviewed_at": "2026-06-22",
+    "hospital_name": "C医院",
+    "department": "呼吸内科",
+    "drg_group": "ES19 呼吸系统感染组",
+    "main_diagnosis": "重症社区获得性肺炎",
+    "procedure_or_item": "广谱抗生素长疗程 + 胸部 CT × 4",
+    "cost": 14200,
+    "trigger_rule": "住院天数偏长 + 检查项目频繁",
+    "risk_reason": "住院 21 天期间胸部 CT 复查 4 次",
+    "patient_summary": "男，73岁，重症社区获得性肺炎，痰培养示多重耐药菌。治疗 21 天，住院期间分别于 D1 / D7 / D14 / D20 行胸部 CT 复查。",
+    "light_status": "yellow",
+    "confidence": 0.58,
+    "suggested_action": "manual_review",
+    "agent_reason": "重症耐药菌肺炎治疗周期合理，但 CT 复查 4 次需结合影像变化与临床转归判断必要性。历史相似案例结论分化，建议人工复核结合影像报告。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC025",
+        "similarity": 0.66,
+        "case_type": "成功申诉",
+        "review_result": "success",
+        "summary": "重症肺炎多重耐药患者，CT 复查 3 次，影像显示病灶变化明显，复核认定必要性放行。"
+      },
+      {
+        "appeal_id": "AC033",
+        "similarity": 0.61,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "普通肺炎患者短期内 CT 复查 3 次，无影像学变化，复核认定无必要打回。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "住院 21 天 + 4 次胸部 CT，触发检查频率审核规则。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "重症耐药菌肺炎，治疗反应缓慢，CT 间隔分别为 6 / 7 / 6 天。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 2 条相似案例，成功 / 打回结论分化（相似度 66% / 61%）。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "建议人工复核结合 4 次 CT 影像报告核验必要性。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC010",
+    "reviewed_at": "2026-06-21",
+    "hospital_name": "A医院",
+    "department": "骨科",
+    "drg_group": "IB39 脊柱融合手术组",
+    "main_diagnosis": "腰椎间盘突出（单节段）",
+    "procedure_or_item": "椎间盘内窥镜 + 椎间融合器 × 2",
+    "cost": 58300,
+    "trigger_rule": "术式适应症超规则",
+    "risk_reason": "单节段椎间盘突出首选保守或微创治疗，使用椎间融合手术超指征",
+    "patient_summary": "男，48岁，腰痛伴右下肢放射痛 6 月。影像示 L4-5 椎间盘突出，未见神经根压迫加重、未见脊柱不稳定征象，无既往手术史。",
+    "light_status": "red",
+    "confidence": 0.83,
+    "suggested_action": "reject",
+    "agent_reason": "该患者影像未见明显脊柱不稳定，无融合手术明确指征，且 1 个节段使用 2 个融合器超常规。匹配到 A医院骨科相似打回案例。",
+    "matched_cases": [
+      {
+        "appeal_id": "AC041",
+        "similarity": 0.81,
+        "case_type": "打回案例",
+        "review_result": "reject",
+        "summary": "A医院骨科单节段椎间盘突出患者，无不稳定影像表现，行椎间融合手术使用 2 个融合器，复核打回。"
+      }
+    ],
+    "evidence_chain": [
+      {
+        "step": "DRG初筛命中",
+        "content": "椎间融合器 2 个 + 内窥镜，58300 元，触发术式适应症规则。",
+        "source": "DRG规则引擎"
+      },
+      {
+        "step": "病历关键点提取",
+        "content": "单节段 L4-5 椎间盘突出，无神经根症状加重、无脊柱不稳定，缺乏融合手术指征。",
+        "source": "脱敏病例摘要"
+      },
+      {
+        "step": "历史案例匹配",
+        "content": "匹配到 A医院骨科 1 条相似打回案例（相似度 81%）。",
+        "source": "历史申诉案例库"
+      },
+      {
+        "step": "复核建议生成",
+        "content": "术式适应症不足，建议打回。",
+        "source": "Agent"
+      }
+    ],
+    "current_status": "pending"
+  }
+]
