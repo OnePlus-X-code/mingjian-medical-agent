@@ -24,7 +24,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LightBadge } from "@/components/light-badge";
@@ -69,8 +68,8 @@ export function CaseDetailDrawer({
         {caseItem && (
           <>
             <DrawerHeader caseItem={caseItem} />
-            <ScrollArea className="flex-1">
-              <div className="space-y-6 px-6 pb-4 pt-2">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="space-y-6 px-6 pb-28 pt-2">
                 <CaseOverview caseItem={caseItem} />
                 <SuspectSection caseItem={caseItem} />
                 <AgentJudgement caseItem={caseItem} />
@@ -78,7 +77,7 @@ export function CaseDetailDrawer({
                 <EvidenceTimeline caseItem={caseItem} />
                 <FeedbackSection feedbacks={caseFeedbacks} />
               </div>
-            </ScrollArea>
+            </div>
             <DrawerFooter caseItem={caseItem} onAction={onAction} onAgentReview={onAgentReview} />
           </>
         )}
@@ -89,7 +88,7 @@ export function CaseDetailDrawer({
 
 function DrawerHeader({ caseItem }: { caseItem: ReviewCase }) {
   return (
-    <SheetHeader className="space-y-3 border-b bg-gradient-to-b from-slate-50 to-white px-6 py-5">
+    <SheetHeader className="shrink-0 space-y-3 border-b bg-gradient-to-b from-slate-50 to-white px-6 py-5">
       <div className="flex items-center gap-2.5">
         <LightBadge status={caseItem.light_status} />
         <StatusBadge status={caseItem.current_status} />
@@ -384,8 +383,8 @@ function DrawerFooter({
   };
 
   return (
-    <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-white px-6 py-3 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.08)]">
-      <div className="text-xs text-slate-500">
+    <div className="shrink-0 flex flex-col gap-3 border-t bg-white px-6 py-3 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.08)]">
+      <div className="text-xs leading-relaxed text-slate-500">
         {reviewing
           ? "Agent 复核中..."
           : processed
@@ -395,7 +394,7 @@ function DrawerFooter({
       {processed ? (
         <StatusBadge status={caseItem.current_status} />
       ) : (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {onAgentReview && (
             <Button
               variant="outline"

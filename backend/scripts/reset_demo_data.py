@@ -49,12 +49,18 @@ def reset():
         json.dump(kept, f, ensure_ascii=False, indent=2)
     print(f"manual_actions.json: 保留 {len(kept)} 条 (MA001-MA005)")
 
-    # 2. 同步 review_cases.json 的 current_status
+    # 2. 同步 review_cases.json：只保留 SC001-SC010，清理 DRG 同步导入的新病例
     rc_path = get_data_path("review_cases.json")
     with rc_path.open("r", encoding="utf-8-sig") as f:
         cases = json.load(f)
 
-    for case in cases:
+    # 只保留 SC001-SC010，移除 SC011+ 等由 DRG 同步导入的病例
+    base_cases = [c for c in cases if c.get("case_id", "") in (
+        "SC001", "SC002", "SC003", "SC004", "SC005",
+        "SC006", "SC007", "SC008", "SC009", "SC010",
+    )]
+
+    for case in base_cases:
         cid = case.get("case_id", "")
         if cid in STATUS_MAP:
             case["current_status"] = STATUS_MAP[cid]
@@ -62,12 +68,19 @@ def reset():
             # SC006-SC010 恢复为 pending
             case["current_status"] = "pending"
 
+    removed_count = len(cases) - len(base_cases)
+
     with rc_path.open("w", encoding="utf-8") as f:
-        json.dump(cases, f, ensure_ascii=False, indent=2)
-    print(f"review_cases.json: {len(cases)} 条病例状态已同步")
+        json.dump(base_cases, f, ensure_ascii=False, indent=2)
+    print(f"review_cases.json: 保留 {len(base_cases)} 条基线病例", end="")
+    if removed_count > 0:
+        print(f"，清理 {removed_count} 条 DRG 同步导入病例")
+    else:
+        print()
+    print(f"review_cases.json: {len(base_cases)} 条病例状态已同步")
 
     # 3. 打印摘要
-    for case in cases:
+    for case in base_cases:
         print(f"  {case['case_id']}: {case['current_status']}")
 
 

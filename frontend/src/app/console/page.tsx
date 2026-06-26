@@ -16,11 +16,14 @@ import {
   getFilterOptions,
   getRecentFeedbacks,
   getReviewCases,
+  refreshDrgCases,
   submitAction,
   triggerAgentReview,
 } from "@/lib/api";
 import reviewCasesData from "@/mock/review_cases.json";
 import manualActionsData from "@/mock/manual_actions.json";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 import type {
   CurrentStatus,
   HumanAction,
@@ -58,6 +61,7 @@ export default function DashboardPage() {
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingReject, setPendingReject] = useState<ReviewCase | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -270,6 +274,55 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSyncDrg = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const result = await refreshDrgCases(3);
+      if (result.imported_count > 0) {
+        toast.success(
+          `已同步 ${result.imported_count} 条 DRG 疑点并完成 Agent 复核`,
+          {
+            description: result.items
+              .map((c) => `${c.case_id} · ${c.hospital_name}`)
+              .join("\n"),
+          }
+        );
+        // 直接将新增病例追加到列表，确保 UI 立即更新
+        setCases((prev) => [...prev, ...result.items]);
+        // 后台异步刷新完整列表（best effort，失败不影响已展示的数据）
+        try {
+          const [loadedCases, loadedFeedbacks] = await Promise.all([
+            getReviewCases(),
+            getRecentFeedbacks(5),
+          ]);
+          // 验证后端返回的数据包含所有新增 case_id，
+          // 避免后端重启或超时导致 GET fallback 到 mock（不含新病例）覆盖已追加的数据
+          const importedIds = result.items.map((c) => c.case_id);
+          const allPresent = importedIds.every((id) =>
+            loadedCases.some((c) => c.case_id === id)
+          );
+          if (allPresent) {
+            setCases(loadedCases);
+          }
+          setFeedbacks(loadedFeedbacks);
+        } catch {
+          // 后台刷新失败，已追加的数据仍然保留
+        }
+      } else {
+        toast.info("暂无新增 DRG 疑点病例", {
+          description: `已跳过 ${result.skipped_count} 条已存在病例`,
+        });
+      }
+    } catch {
+      toast.error("同步 DRG 疑点失败", {
+        description: "请检查后端服务是否正常运行",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const recentFeedbacks = useMemo(
     () =>
       [...feedbacks]
@@ -288,6 +341,21 @@ export default function DashboardPage() {
           yellow={stats.yellow}
           red={stats.red}
         />
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">复核清单</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800"
+            disabled={syncing}
+            onClick={handleSyncDrg}
+          >
+            <RefreshCw
+              className={syncing ? "size-4 animate-spin" : "size-4"}
+            />
+            {syncing ? "同步并分析中..." : "同步 DRG 疑点"}
+          </Button>
+        </div>
         <FilterBar
           value={filter}
           onChange={setFilter}

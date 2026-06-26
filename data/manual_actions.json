@@ -60,62 +60,14 @@
   },
   {
     "action_id": "MA006",
-    "case_id": "SC006",
-    "hospital_name": "C医院",
-    "department": "肿瘤科",
-    "agent_status": "yellow",
-    "human_action": "manual_review",
-    "human_reason": null,
-    "operator": "王明",
-    "created_at": "2026-06-26 17:22:39",
-    "is_agent_accepted": true
-  },
-  {
-    "action_id": "MA007",
     "case_id": "SC007",
     "hospital_name": "A医院",
     "department": "消化内科",
     "agent_status": "green",
-    "human_action": "approve",
-    "human_reason": null,
-    "operator": "王明",
-    "created_at": "2026-06-26 17:22:51",
-    "is_agent_accepted": true
-  },
-  {
-    "action_id": "MA008",
-    "case_id": "SC008",
-    "hospital_name": "B医院",
-    "department": "妇产科",
-    "agent_status": "red",
-    "human_action": "approve",
-    "human_reason": null,
-    "operator": "王明",
-    "created_at": "2026-06-26 17:23:01",
-    "is_agent_accepted": false
-  },
-  {
-    "action_id": "MA009",
-    "case_id": "SC009",
-    "hospital_name": "C医院",
-    "department": "呼吸内科",
-    "agent_status": "yellow",
     "human_action": "reject",
-    "human_reason": null,
+    "human_reason": "同次操作多个高值耗材",
     "operator": "王明",
-    "created_at": "2026-06-26 17:23:09",
-    "is_agent_accepted": false
-  },
-  {
-    "action_id": "MA010",
-    "case_id": "SC010",
-    "hospital_name": "A医院",
-    "department": "骨科",
-    "agent_status": "red",
-    "human_action": "approve",
-    "human_reason": null,
-    "operator": "王明",
-    "created_at": "2026-06-26 17:23:18",
+    "created_at": "2026-06-26 22:35:34",
     "is_agent_accepted": false
   }
 ]

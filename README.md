@@ -65,7 +65,8 @@ mingjian-medical-agent/
 │   │   │   └── console/         # 审核工作台主页面
 │   │   ├── components/          # UI 组件
 │   │   │   ├── dashboard/       # 业务组件（表格、抽屉、弹窗、面板）
-│   │   │   └── ui/              # shadcn/ui 基础组件
+│   │   │   ├── ui/              # shadcn/ui 基础组件
+│   │   │   └── dev-overlay-fix.tsx # 隐藏 Next.js dev 内部错误徽章
 │   │   ├── lib/                 # API 层 + mock fallback
 │   │   ├── mock/                # 本地 mock 数据
 │   │   └── types/               # TypeScript 类型定义
@@ -79,7 +80,7 @@ mingjian-medical-agent/
 │   │   │   ├── review_cases.py  #   GET /review-cases, /review-cases/{id}
 │   │   │   ├── actions.py       #   POST /actions
 │   │   │   ├── feedbacks.py     #   GET /feedbacks
-│   │   │   └── agent.py         #   POST /agent/review-one
+│   │   │   └── agent.py         #   POST /agent/review-one, /agent/refresh-drg-cases
 │   │   ├── services/            # 业务逻辑
 │   │   │   ├── review_service.py
 │   │   │   ├── action_service.py
@@ -100,7 +101,8 @@ mingjian-medical-agent/
 │   ├── review_cases.json        # Agent 复核结果（前端展示）
 │   └── manual_actions.json      # 人工操作与反馈记录
 └── docs/                        # 项目文档
-    └── backend/                 # 后端开发文档
+    ├── backend/                 # 后端开发文档
+    └── demo_assets/             # 演示截图
 ```
 
 ---
@@ -137,8 +139,14 @@ cp .env.example .env
 启动服务：
 
 ```bash
+# 开发模式（带热重载）
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8800
+
+# 正式演示（不要使用 --reload，避免文件写入触发重启）
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8800
 ```
+
+> **重要**：正式演示时不要使用 `--reload`。后端写入 `review_cases.json` 会触发 reload，导致前端紧接着的 GET 请求失败并 fallback 到 mock 数据。
 
 > **Windows 端口说明**：如 8000 端口被 HNS 保留（`Errno 13`），可改用 8800 端口启动。
 
@@ -177,7 +185,7 @@ cd backend
 python scripts/reset_demo_data.py
 ```
 
-恢复 5 条历史反馈（MA001-MA005）、10 条病例（SC001-SC005 已处置、SC006-SC010 待处理）。
+恢复 5 条历史反馈（MA001-MA005）、10 条基线病例（SC001-SC005 已处置、SC006-SC010 待处理）。同时清理 DRG 同步导入的 SC011+ 病例，确保每次演示从干净状态开始。
 
 ---
 
@@ -191,6 +199,7 @@ python scripts/reset_demo_data.py
 | POST | `/actions` | 提交人工动作（放行 / 打回 / 转人工） |
 | GET | `/feedbacks?limit=5` | 近期人工反馈记录 |
 | POST | `/agent/review-one` | Agent 智能复核（调用 LLM 或规则兜底） |
+| POST | `/agent/refresh-drg-cases` | 同步 DRG 疑点病例 + Agent 自动分析（默认 limit=3） |
 
 API 文档：http://localhost:8800/docs
 
@@ -199,13 +208,18 @@ API 文档：http://localhost:8800/docs
 ## 演示流程
 
 ```text
-1. 打开 http://localhost:3000/console
-2. 看到红黄绿分级复核清单（SC001-SC010）
-3. 点击 SC007（绿灯案例）→ 查看详情抽屉
-4. 点击"Agent 复核"按钮 → 等 5-8 秒 → LLM 生成详细分析
-5. 点击"打回" → 弹出理由填写弹窗 → 输入理由 → 确认
-6. 查看反馈面板新增记录
-7. 刷新页面 → 状态仍然保留
+1. 执行 reset_demo_data.py 恢复初始数据（10 条基线病例）
+2. 启动后端（端口 8800，不使用 --reload）
+3. 启动前端（端口 3000）
+4. 打开 http://localhost:3000/console
+5. 看到红黄绿分级复核清单（SC001-SC010）
+6. 点击「同步 DRG 疑点」→ 等待 15-20 秒 → 新增 SC011/SC012/SC013（共 13 条）
+7. 点击 SC011 行 → 查看详情抽屉
+   - Agent 判断理由、证据链、相似案例、红黄绿建议
+8. 点击「Agent 复核」按钮 → LLM 重新分析该病例
+9. 点击「打回」→ 弹出理由填写弹窗 → 输入理由 → 确认
+10. 查看反馈面板新增记录
+11. 刷新页面 → 状态仍然保留
 ```
 
 ---
@@ -222,6 +236,7 @@ API 文档：http://localhost:8800/docs
 | Phase 5 | LLM API 调用接入 | ✅ 完成 |
 | Phase 6 | 前端 Agent 复核入口集成 | ✅ 完成 |
 | Phase 7 | 打回弹窗 Bug 修复 | ✅ 完成 |
+| Phase 8 | DRG 疑点同步 + Agent 自动分析 + UI 小修复 | ✅ 完成 |
 
 ---
 
@@ -244,6 +259,8 @@ API 文档：http://localhost:8800/docs
 | 变量 | 说明 | 默认值 |
 |---|---|---|
 | `NEXT_PUBLIC_API_BASE_URL` | 后端 API 地址 | `http://localhost:8800` |
+
+> `frontend/.env.local` 只配置 `NEXT_PUBLIC_API_BASE_URL`，不允许存放 API Key。
 
 ---
 

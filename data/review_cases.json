@@ -315,7 +315,7 @@
         "source": "综合判断"
       }
     ],
-    "current_status": "manual_review"
+    "current_status": "pending"
   },
   {
     "case_id": "SC007",
@@ -359,7 +359,7 @@
         "source": "相似历史申诉案例列表"
       }
     ],
-    "current_status": "approved"
+    "current_status": "rejected"
   },
   {
     "case_id": "SC008",
@@ -408,7 +408,7 @@
         "source": "Agent"
       }
     ],
-    "current_status": "approved"
+    "current_status": "pending"
   },
   {
     "case_id": "SC009",
@@ -464,7 +464,7 @@
         "source": "Agent"
       }
     ],
-    "current_status": "rejected"
+    "current_status": "pending"
   },
   {
     "case_id": "SC010",
@@ -513,6 +513,124 @@
         "source": "Agent"
       }
     ],
-    "current_status": "approved"
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC011",
+    "hospital_name": "A医院",
+    "department": "心内科",
+    "drg_group": "EL1A",
+    "main_diagnosis": "不稳定型心绞痛",
+    "procedure_or_item": "冠状动脉造影术",
+    "cost": 45000,
+    "trigger_rule": "DRG 高套分值",
+    "risk_reason": "DRG 分组为 EL1A（复杂心血管介入），但手术记录仅显示冠脉造影，实际未行介入治疗",
+    "patient_summary": "男，65岁，不稳定型心绞痛。行冠脉造影显示前降支中段50%狭窄，未行介入治疗。病历中 DRG 分组为 EL1A，但手术记录仅包含造影操作。",
+    "light_status": "red",
+    "confidence": 0.95,
+    "suggested_action": "reject",
+    "agent_reason": "病例手术记录仅包含冠脉造影，未行介入治疗，但DRG分组为EL1A（复杂心血管介入），属于分组高套。诊疗项目与DRG分组缺乏合理对应，且无历史申诉案例支持临床解释。",
+    "evidence_chain": [
+      {
+        "step": "审核病例信息",
+        "content": "主诊断为不稳定型心绞痛，手术记录仅显示冠状动脉造影术，未行介入治疗。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "比对DRG分组与手术操作",
+        "content": "DRG分组EL1A（复杂心血管介入）要求包含介入治疗操作，但实际仅行造影，不满足分组条件。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "判断关联性",
+        "content": "冠脉造影与不稳定型心绞痛诊断具有合理关联，但DRG高套分值导致违规。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "参考历史案例",
+        "content": "无相似历史申诉案例。",
+        "source": "相似历史申诉案例"
+      }
+    ],
+    "matched_cases": [],
+    "reviewed_at": "2026-06-26 22:28:00",
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC012",
+    "hospital_name": "B医院",
+    "department": "骨科",
+    "drg_group": "IC2A",
+    "main_diagnosis": "腰椎管狭窄症（L4-L5）",
+    "procedure_or_item": "后路腰椎融合术 + 椎间融合器植入 + 生物骨粉",
+    "cost": 78000,
+    "trigger_rule": "高价耗材使用合理性",
+    "risk_reason": "脊柱融合术中使用高价生物骨粉，但术中记录未明确记载使用部位和用量",
+    "patient_summary": "女，58岁，腰椎管狭窄症 L4-L5。行后路腰椎融合术 + 椎间融合器植入。费用清单含 35000 元生物骨粉耗材，但手术记录中未明确记载骨粉使用量和植入位置。",
+    "light_status": "yellow",
+    "confidence": 0.6,
+    "suggested_action": "manual_review",
+    "agent_reason": "手术记录未明确记载生物骨粉的使用部位和用量，无法直接评估其合理性，需人工核实临床必要性。",
+    "evidence_chain": [
+      {
+        "step": "识别触发规则",
+        "content": "病例因高价耗材使用合理性被触发，耗材为生物骨粉，费用35000元。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "分析风险原因",
+        "content": "风险原因为术中记录未明确记载骨粉使用部位和用量。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "检查病历摘要",
+        "content": "患者行后路腰椎融合术+椎间融合器植入，但手术记录中无骨粉具体使用信息。",
+        "source": "patient_summary"
+      }
+    ],
+    "matched_cases": [],
+    "reviewed_at": "2026-06-26 22:28:06",
+    "current_status": "pending"
+  },
+  {
+    "case_id": "SC013",
+    "hospital_name": "C医院",
+    "department": "肿瘤科",
+    "drg_group": "RC1A",
+    "main_diagnosis": "结肠恶性肿瘤（I 期，pT1N0M0）",
+    "procedure_or_item": "贝伐珠单抗 + FOLFOX 化疗方案",
+    "cost": 52000,
+    "trigger_rule": "过度治疗 / 指南偏差",
+    "risk_reason": "早期结肠癌（I期）患者使用靶向药物联合化疗，但NCCN指南推荐I期结肠癌术后无需辅助化疗",
+    "patient_summary": "男，72岁，结肠癌I期 pT1N0M0。行腹腔镜结肠癌根治术。术后处方贝伐珠单抗 + FOLFOX 方案化疗6周期，费用52000元。I期结肠癌指南推荐术后随访观察，无需辅助化疗。",
+    "light_status": "red",
+    "confidence": 0.95,
+    "suggested_action": "reject",
+    "agent_reason": "患者为结肠癌I期（pT1N0M0），NCCN指南明确推荐术后随访观察，无需辅助化疗。使用贝伐珠单抗联合FOLFOX化疗方案属于过度治疗，缺乏临床依据。无历史成功申诉案例或科室画像支持，应打回处理。",
+    "evidence_chain": [
+      {
+        "step": "识别疑似违规",
+        "content": "病例SC013，结肠癌I期，使用贝伐珠单抗+FOLFOX化疗方案，费用52000元，触发过度治疗/指南偏差规则。",
+        "source": "疑似违规病例"
+      },
+      {
+        "step": "验证指南依据",
+        "content": "NCCN指南推荐I期结肠癌术后无需辅助化疗，该方案与指南明显不符。",
+        "source": "行业诊疗标准"
+      },
+      {
+        "step": "评估历史案例",
+        "content": "无相似历史成功申诉案例，无医院/科室画像支撑。",
+        "source": "历史申诉案例和科室画像"
+      },
+      {
+        "step": "综合判断",
+        "content": "诊疗项目与诊断缺乏合理关联，属于过度治疗，应建议打回。",
+        "source": "判断标准"
+      }
+    ],
+    "matched_cases": [],
+    "reviewed_at": "2026-06-26 22:28:12",
+    "current_status": "pending"
   }
 ]

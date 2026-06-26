@@ -436,3 +436,143 @@ def _get_history_actions(case_id: str) -> list[dict]:
 def _now_str() -> str:
     """当前时间，格式 YYYY-MM-DD HH:MM:SS。"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+# ── DRG 疑点同步 ─────────────────────────────────────
+
+def normalize_suspect_case(suspect: dict) -> dict:
+    """将 DRG 系统输出的疑点病例转换为 ReviewCase 格式。
+
+    兼容旧格式（hospital, suspect_type, total_cost 等）和新格式
+    （hospital_name, trigger_rule, cost 等）。
+    """
+    case_id = suspect.get("case_id", "")
+    hospital_name = suspect.get("hospital_name") or suspect.get("hospital", "")
+    department = suspect.get("department", "")
+    trigger_rule = (
+        suspect.get("trigger_rule")
+        or suspect.get("suspect_type", "未知规则")
+    )
+    cost = suspect.get("cost") or suspect.get("total_cost", 0)
+    risk_reason = (
+        suspect.get("risk_reason")
+        or suspect.get("description", "")
+    )
+    patient_summary = (
+        suspect.get("patient_summary")
+        or suspect.get("description", "无病历摘要")
+    )
+    main_diagnosis = suspect.get("main_diagnosis", "")
+    procedure_or_item = suspect.get("procedure_or_item", "")
+    drg_group = suspect.get("drg_group", "")
+
+    # 如果 main_diagnosis 或 procedure_or_item 为空，从 risk_reason 中提取
+    if not main_diagnosis and risk_reason:
+        main_diagnosis = risk_reason.split("，")[0] if "，" in risk_reason else risk_reason[:20]
+    if not procedure_or_item:
+        procedure_or_item = trigger_rule
+
+    return {
+        "case_id": case_id,
+        "hospital_name": hospital_name,
+        "department": department,
+        "drg_group": drg_group,
+        "main_diagnosis": main_diagnosis,
+        "procedure_or_item": procedure_or_item,
+        "cost": cost,
+        "trigger_rule": trigger_rule,
+        "risk_reason": risk_reason,
+        "patient_summary": patient_summary,
+        "light_status": "yellow",
+        "confidence": 0.0,
+        "suggested_action": "manual_review",
+        "agent_reason": "",
+        "evidence_chain": [],
+        "matched_cases": [],
+        "reviewed_at": "",
+        "current_status": "pending",
+    }
+
+
+def refresh_drg_cases(limit: int = 3) -> tuple[list[dict], int, int]:
+    """同步 DRG 疑点并执行 Agent 分析。
+
+    Returns:
+        (imported_items, imported_count, skipped_count)
+    """
+    # 1. 读取 suspect_cases 和 review_cases
+    suspects = read_json("suspect_cases.json")
+    if not isinstance(suspects, list):
+        suspects = []
+
+    review_cases = read_json("review_cases.json")
+    if not isinstance(review_cases, list):
+        review_cases = []
+
+    # 2. 找出已存在的 case_id
+    existing_ids = {c.get("case_id") for c in review_cases if c.get("case_id")}
+
+    # 3. 筛选新增疑点
+    new_suspects = [
+        s for s in suspects
+        if s.get("case_id") and s["case_id"] not in existing_ids
+    ]
+
+    skipped_count = len(suspects) - len(new_suspects)
+
+    # 4. 最多处理 limit 条
+    to_process = new_suspects[:limit]
+    imported_items: list[dict] = []
+
+    for suspect in to_process:
+        try:
+            case = normalize_suspect_case(suspect)
+
+            # 匹配历史申诉案例
+            matched_cases = _match_appeal_cases(case)
+
+            # 读取医院画像
+            hospital_profile = _get_hospital_profile(case)
+
+            # Agent 分析：LLM 或规则兜底
+            use_llm = False
+            llm_result = None
+
+            if LLM_ENABLED:
+                try:
+                    llm_result = _call_llm(case, matched_cases, hospital_profile)
+                    use_llm = True
+                except Exception as e:
+                    logger.warning(
+                        "LLM review failed for %s during DRG sync, "
+                        "falling back to rules: %s",
+                        case["case_id"], e,
+                    )
+
+            if not use_llm:
+                llm_result = _rule_based_fallback(case, matched_cases)
+
+            # 合并 Agent 结果
+            case["light_status"] = llm_result["light_status"]
+            case["confidence"] = llm_result["confidence"]
+            case["suggested_action"] = llm_result["suggested_action"]
+            case["agent_reason"] = llm_result["agent_reason"]
+            case["evidence_chain"] = llm_result["evidence_chain"]
+            case["matched_cases"] = matched_cases
+            case["reviewed_at"] = _now_str()
+
+            imported_items.append(case)
+
+        except Exception as e:
+            logger.error(
+                "Failed to process suspect %s: %s",
+                suspect.get("case_id", "unknown"), e,
+            )
+
+    # 5. 写入 review_cases.json（不重复）
+    if imported_items:
+        review_cases.extend(imported_items)
+        write_json("review_cases.json", review_cases)
+
+    imported_count = len(imported_items)
+    return imported_items, imported_count, skipped_count
